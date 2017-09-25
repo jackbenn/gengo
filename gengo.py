@@ -1,6 +1,5 @@
 #!python
 
-
 # iterating over sets when removing items?????
 
 # General logic:
@@ -14,17 +13,17 @@
 
 
 # Rule Questions:
-# Should suicid     be legal?
+# Should suicide be legal?
 # Should it be legal to kill one's own groups
 #        (not connected to the stone played)
-# If so, should the group with the stone played die before,
+#    If so, should the group with the stone played die before,
 #        after, or at the same time as others of that player?
 # Should it be legal to play inside the overlap of one's own stones?
 #    Pro:
 #        it avoids the weird inability to connect stones
 #    Con:
 #        it doesn't solve the friendly-fire problem
-#        it makes scone-counting ineffective
+#        it makes stone-counting ineffective
 #        it feels a little weird
 
 
@@ -66,32 +65,25 @@ class GridBoard (Board):
                         j1 = i1 + x[1] * dir[1]
                         if 0 <= j0 < size and 0 <= j1 < size:
                             self.grid[i0][i1].neighbor.add(self.grid[j0][j1])
-        for i0 in range(size):
-            for i1 in range(size):
-                print(i0, " ", i1)
-                for x in self.grid[i0][i1].overlap:
-                    print("  ", x.coord)
-                print()
-                for x in self.grid[i0][i1].neighbor:
-                    print("  ", x.coord)
-                print()
 
     def output(self):
+        ''' Print board to stdout'''
         print("  ", end="")
         for j in range(self.size):
-            print("{0:2d}".format(j), end="")
+            print("{0:3d}".format(j), end="")
         print()
         for i in range(self.size):
-            print("{0:2d} ".format(i), end="")
+            print("{0:3d} ".format(i), end="")
             for j in range(self.size):
                 space = self.grid[i][j]
                 if space.is_empty():
-                    print(". ", end="")
+                    print(".  ", end="")
                 elif space.stone is not None:
-                    print(space.stone.owner.symbol, space.stone.group.count,
+                    print("{}{:<2d}".format(space.stone.owner.symbol,
+                                           space.stone.group.count),
                           sep="", end="")
                 else:
-                    print("* ", end="")
+                    print("*  ", end="")
             print()
         print()
 
@@ -115,8 +107,8 @@ class Space:
         # a tuple, but that's not part of the base class
         self.liberty_of = set()  # groups of which this is a liberty
 
-    # does it not overlap with a stone?
     def is_empty(self):
+        '''does it not overlap with a stone?'''
         return self.overlapcount == 0
 
     def play(self, player):
@@ -124,9 +116,12 @@ class Space:
         # create stone which will create group and find liberties
         self.stone = Stone(player, self)
         # add to existing groups
+        merge_groups = set()
         for group in self.liberty_of:
             if group.owner == player and group != self.stone.group:
-                self.stone.group.merge(group)
+                merge_groups.add(group)
+        for group in merge_groups:
+            self.stone.group.merge(group)
         # keep track of all groups affected by the play
         affected_groups = set()
         # make this space and all overlaps not empty
@@ -141,6 +136,9 @@ class Space:
                       group.count))
                 affected_groups.add(group)
             space.liberty_of.clear()
+        # add this stone's group to the affected group
+        # (if it's a single suicide it won't be included)
+        affected_groups.add(self.stone.group)
 
         # first check opponent's groups for death...
         moribund_group = set()
@@ -236,6 +234,8 @@ class Group:
 
 gb = GridBoard(11, [(0, 0), (1, 0), (0, 1), (1, 1)],
                    [(2, 0), (0, 2), (2, 1), (1, 2)])
+#gb = GridBoard(11, [(0, 0)],
+#                   [(1, 0), (0, 1)])
 gb.output()
 
 
