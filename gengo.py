@@ -13,11 +13,14 @@
 
 
 # Rule Questions:
-# Should suicide be legal?
+# Should suicide be legal? (currently: yes)
 # Should it be legal to kill one's own groups
 #        (not connected to the stone played)
+#        (currently: yes)
 #    If so, should the group with the stone played die before,
 #        after, or at the same time as others of that player?
+#        (currently: same time)
+#    The current option seems the most logical and easiest to code.
 # Should it be legal to play inside the overlap of one's own stones?
 #    Pro:
 #        it avoids the weird inability to connect stones
@@ -52,40 +55,49 @@ class GridBoard (Board):
         self.grid = [[Space() for i0 in range(size)] for i1 in range(size)]
         for i0 in range(size):
             for i1 in range(size):
-                space = self.grid[i0][i1]
+                space = self[i0, i1]
                 space.coord = (i0, i1)
                 for dir in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
                     for x in overlap:
                         j0 = i0 + x[0] * dir[0]
                         j1 = i1 + x[1] * dir[1]
                         if 0 <= j0 < size and 0 <= j1 < size:
-                            self.grid[i0][i1].overlap.add(self.grid[j0][j1])
+                            self[i0, i1].overlap.add(self[j0, j1])
                     for x in neighbor:
                         j0 = i0 + x[0] * dir[0]
                         j1 = i1 + x[1] * dir[1]
                         if 0 <= j0 < size and 0 <= j1 < size:
-                            self.grid[i0][i1].neighbor.add(self.grid[j0][j1])
+                            self[i0, i1].neighbor.add(self[j0, j1])
 
-    def output(self):
-        ''' Print board to stdout'''
-        print("  ", end="")
+    def __str__(self):
+        '''Return string version of board'''
+        result = "  "
         for j in range(self.size):
-            print("{0:3d}".format(j), end="")
-        print()
+            result += '{0:3d}'.format(j)
+        result += '\n'
+
         for i in range(self.size):
-            print("{0:3d} ".format(i), end="")
+            result += '{0:3d} '.format(i)
             for j in range(self.size):
-                space = self.grid[i][j]
+                space = self[i, j]
                 if space.is_empty():
-                    print(".  ", end="")
+                    result += '.  '
                 elif space.stone is not None:
-                    print("{}{:<2d}".format(space.stone.owner.symbol,
-                                           space.stone.group.count),
-                          sep="", end="")
+                    result += '{}{:<2d}'.format(space.stone.owner.symbol,
+                                           space.stone.group.count)
                 else:
-                    print("*  ", end="")
-            print()
-        print()
+                    result += '*  '
+            result += '\n'
+        result += '\n'
+        return result
+
+    def __getitem__(self, coords):
+        '''Return the Space object at the specified coordinates'''
+        return self.grid[coords[0]][coords[1]]
+
+    def __setitem__(self, coords, value):
+        '''Set the Space object at the specified coordinates'''
+        self.grid[coords[0]][coords[1]] = value
 
     def load(self, id_):
         pass
@@ -141,25 +153,24 @@ class Space:
         affected_groups.add(self.stone.group)
 
         # first check opponent's groups for death...
-        moribund_group = set()
+        moribund_groups = set()
         for group in affected_groups:
             if group.owner != player:
                 if len(group.liberties) == 0:
-                    moribund_group.add(group)
+                    moribund_groups.add(group)
         # they all die at the same time
         # (it's possible one might open liberties for another,
         # but that would lead to indeterminate situations)
-        for group in moribund_group:
+        for group in moribund_groups:
             group.die()
         # ...and now handle suicides
         # (we're making these legal for now because it's easier)
-        moribund_group = set()
+        moribund_groups = set()
         for group in affected_groups:
             if group.owner == player:
                 if len(group.liberties) == 0:
-                    moribund_group.add(group)
-        # maybe the group that the stone was in should die first???
-        for group in moribund_group:
+                    moribund_groups.add(group)
+        for group in moribund_groups:
             group.die()
 
 
@@ -236,51 +247,50 @@ gb = GridBoard(11, [(0, 0), (1, 0), (0, 1), (1, 1)],
                    [(2, 0), (0, 2), (2, 1), (1, 2)])
 #gb = GridBoard(11, [(0, 0)],
 #                   [(1, 0), (0, 1)])
-gb.output()
-
+print(gb)
 
 p1 = Player("X", "X")
 p2 = Player("O", "O")
 '''
-gb.grid[2][2].play(p1)
-gb.output()
+gb[2, 2].play(p1)
+print(gb)
 
-gb.grid[3][4].play(p2)
-gb.output()
+gb[3, 4].play(p2)
+print(gb)
 
-gb.grid[0][2].play(p2)
-gb.output()
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+gb[0, 2].play(p2)
+print(gb)
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[1][0].play(p2)
-gb.output()
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+gb[1, 0].play(p2)
+print(gb)
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[4][0].play(p2)
-gb.output()
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+gb[4, 0].play(p2)
+print(gb)
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[5][2].play(p2)
-gb.output()
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+gb[5, 2].play(p2)
+print(gb)
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-b.grid[0][4].play(p2)
-gb.output()
+b[0, 4].play(p2)
+print(gb)
 
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[1][6].play(p1)
-gb.output()
+gb[1, 6].play(p1)
+print(gb)
 
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[3][6].play(p1)
-gb.output()
+gb[3, 6].play(p1)
+print(gb)
 
-print("liberties: ", len(gb.grid[0][2].stone.group.liberties))
+print("liberties: ", len(gb[0, 2].stone.group.liberties))
 
-gb.grid[3][2].play(p1)
-gb.output()
+gb[3, 2].play(p1)
+print(gb)
 '''
 
 
@@ -289,8 +299,8 @@ while (True):
     next = eval(input())
     if type(next).__name__ != "tuple":
         break
-    gb.grid[next[0]][next[1]].play(current)
-    gb.output()
+    gb[next[0], next[1]].play(current)
+    print(gb)
     if current == p1:
         current = p2
     else:
