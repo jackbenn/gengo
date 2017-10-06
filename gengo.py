@@ -32,8 +32,20 @@
 
 class Game:
     '''A game played between two people'''
-    def __init__(self):
-        pass
+    def __init__(self, players, board):
+        self.players = players
+        self.moves = []
+        self.board = board
+        self.next_player = 0
+    
+    def __str__(self):
+        return str(self.board)
+
+    def move(self, location):
+        self.board[location].play(self.players[self.next_player])
+        self.moves.append(location)
+        self.next_player = 1 - self.next_player
+
 
 
 class Board:
@@ -243,65 +255,62 @@ class Group:
         print("Liberties in merged group: ", len(self.liberties))
 
 
-gb = GridBoard(11, [(0, 0), (1, 0), (0, 1), (1, 1)],
-                   [(2, 0), (0, 2), (2, 1), (1, 2)])
-#gb = GridBoard(11, [(0, 0)],
-#                   [(1, 0), (0, 1)])
-print(gb)
-
-p1 = Player("X", "X")
-p2 = Player("O", "O")
-'''
-gb[2, 2].play(p1)
-print(gb)
-
-gb[3, 4].play(p2)
-print(gb)
-
-gb[0, 2].play(p2)
-print(gb)
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[1, 0].play(p2)
-print(gb)
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[4, 0].play(p2)
-print(gb)
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[5, 2].play(p2)
-print(gb)
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-b[0, 4].play(p2)
-print(gb)
-
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[1, 6].play(p1)
-print(gb)
-
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[3, 6].play(p1)
-print(gb)
-
-print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-gb[3, 2].play(p1)
-print(gb)
-'''
-
-
-current = p1
-while (True):
-    next = eval(input())
-    if type(next).__name__ != "tuple":
-        break
-    gb[next[0], next[1]].play(current)
+if __name__ == '__main__':
+    gb = GridBoard(11, [(0, 0), (1, 0), (0, 1), (1, 1)],
+                       [(2, 0), (0, 2), (2, 1), (1, 2)])
+    #gb = GridBoard(11, [(0, 0)],
+    #                   [(1, 0), (0, 1)])
     print(gb)
-    if current == p1:
-        current = p2
-    else:
-        current = p1
+
+    p1 = Player("X", "X")
+    p2 = Player("O", "O")
+    '''
+    gb[2, 2].play(p1)
+    print(gb)
+
+    gb[3, 4].play(p2)
+    print(gb)
+
+    gb[0, 2].play(p2)
+    print(gb)
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[1, 0].play(p2)
+    print(gb)
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[4, 0].play(p2)
+    print(gb)
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[5, 2].play(p2)
+    print(gb)
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    b[0, 4].play(p2)
+    print(gb)
+
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[1, 6].play(p1)
+    print(gb)
+
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[3, 6].play(p1)
+    print(gb)
+
+    print("liberties: ", len(gb[0, 2].stone.group.liberties))
+
+    gb[3, 2].play(p1)
+    print(gb)
+    '''
+
+    game = Game((p1, p2), gb)
+
+    while (True):
+        next = eval(input())
+        if type(next).__name__ != "tuple":
+            break
+        game.move(next)
+        print(game)
