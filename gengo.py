@@ -28,15 +28,17 @@
 #        it doesn't solve the friendly-fire problem
 #        it makes stone-counting ineffective
 #        it feels a little weird
-
+import psycopg2
 
 class Game:
     '''A game played between two people'''
-    def __init__(self, players, board):
+    def __init__(self, players, board, name=None):
         self.players = players
         self.moves = []
         self.board = board
         self.next_player = 0
+        self.id = None
+        self.name = name
     
     def __str__(self):
         return str(self.board)
@@ -46,7 +48,34 @@ class Game:
         self.moves.append(location)
         self.next_player = 1 - self.next_player
 
+    # database methods. Should separate off as ORM.
+    @staticmethod
+    def load(conn, id):
+        cur = conn.cursor()
+        cur.execute('''select id, name, player1, player2 from game''')
+        row = cur.fetchall()
+        
 
+    def save(self, conn):
+        '''
+        Add to database if new object and id is missing
+        Otherwise: save recent moves
+        '''
+        cur = conn.cursor()
+        
+        if self.id is None:
+            cur.execute("insert into game (player1, player2) values (%s, %s) returning id",
+                        (self.players[0].id,
+                         self.players[1].id))
+            self.id = cur.fetchone()[0]
+        sequence = 0
+        for move in self.moves:
+            cur.execute('insert into move (game, row, col, sequence) values (%s, %s, %s, %s)',
+                        (self.id,
+                         move[0],
+                         move[1],
+                         sequence))
+            sequence += 1
 
 class Board:
     '''A fairly static object,
@@ -116,7 +145,8 @@ class GridBoard (Board):
 
 
 class Player:
-    def __init__(self, name, symbol):
+    def __init__(self, name, symbol, id):
+        self.id = id
         self.name = name
         self.symbol = symbol  # should be single character, for printing
 
@@ -262,8 +292,8 @@ if __name__ == '__main__':
     #                   [(1, 0), (0, 1)])
     print(gb)
 
-    p1 = Player("X", "X")
-    p2 = Player("O", "O")
+    p1 = Player("X", "X", 1)
+    p2 = Player("O", "O", 2)
     '''
     gb[2, 2].play(p1)
     print(gb)
@@ -314,3 +344,6 @@ if __name__ == '__main__':
             break
         game.move(next)
         print(game)
+    conn = psycopg2.connect("dbname='gengo'")
+    conn.set_session(autocommit=True)
+    game.save(conn)
