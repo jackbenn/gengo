@@ -21,7 +21,7 @@
 #        after, or at the same time as others of that player?
 #        (currently: same time)
 #    The current option seems the most logical and easiest to code.
-# Should it be legal to play inside the overlap of one's own stones?
+# Should it be legal to play inside the overlap of one's own stones? (currently: yes)
 #    Pro:
 #        it avoids the weird inability to connect stones
 #    Con:
@@ -29,6 +29,7 @@
 #        it makes stone-counting ineffective
 #        it feels a little weird
 import psycopg2
+import re
 
 class Game:
     '''A game played between two people'''
@@ -53,7 +54,7 @@ class Game:
     def load(conn, id):
         cur = conn.cursor()
         cur.execute('''select id, name, player1, player2 from game''')
-        row = cur.fetchall()
+        row = cur.fetchone()
         
 
     def save(self, conn):
@@ -76,12 +77,13 @@ class Game:
                          move[1],
                          sequence))
             sequence += 1
+        conn.commit()
 
 class Board:
     '''A fairly static object,
     created once for each size/shape of board and ruleset.'''
     def __init__(self):
-        pass
+        ass
 
 
 class GridBoard (Board):
@@ -339,11 +341,13 @@ if __name__ == '__main__':
     game = Game((p1, p2), gb)
 
     while (True):
-        next = eval(input())
-        if type(next).__name__ != "tuple":
+        move = input()
+        if re.match("\s*\d+\s*,\s*\d+\s*", move):
+            next = eval(move)
+        else:
             break
         game.move(next)
         print(game)
     conn = psycopg2.connect("dbname='gengo'")
-    conn.set_session(autocommit=True)
+    #conn.set_session(autocommit=True)
     game.save(conn)
