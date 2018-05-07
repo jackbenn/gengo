@@ -30,12 +30,13 @@
 #        it feels a little weird
 import psycopg2
 import re
+from typing import Set, Tuple, Sequence
 
 class Game:
     '''A game played between two people'''
-    def __init__(self, players, board, name=None):
+    def __init__(self, players: Tuple['Player', 'Player'], board: 'Board', name:str=None) -> None:
         self.players = players
-        self.moves = []
+        self.moves = [] # Sequence[Tuple[int, int]]
         self.board = board
         self.next_player = 0
         self.id = None
@@ -248,19 +249,19 @@ class Stone:
 class Group:
     groupcount = 0
 
-    def __init__(self, stone):
+    def __init__(self, stone: Stone) -> None:
         self.count = Group.groupcount
         Group.groupcount += 1
         self.stones = [stone]
         self.owner = stone.owner
-        self.liberties = set()
+        self.liberties = set() # type: Set[Space]
         for space in stone.location.neighbor:
             if space.is_empty():
                 self.liberties.add(space)
                 space.liberty_of.add(self)
         print("New group liberties: ", len(self.liberties))
 
-    def die(self):
+    def die(self) -> None:
         print("The group died.")
         for stone in self.stones:
             stone.die()
