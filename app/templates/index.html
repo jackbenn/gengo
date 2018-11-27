@@ -1,0 +1,21 @@
+<html>
+    <head>
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Home page</title>
+    {% endif %}
+    </head>
+    <body>
+    <h1>Hello, {{ user.username }}!</h1>
+
+    <svg width="500" height="500">
+        {% for x in 1,2,3 %}
+            {% for y in 1,2,3 %}
+                <circle cx="{{x*100}}" cy="{{y*100}}" r="10" stroke="red"/>
+            {% endfor %}
+        {% endfor %}
+    </svg>
+    </body>
+</html>
+
