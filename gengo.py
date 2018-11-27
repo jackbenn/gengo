@@ -30,7 +30,7 @@
 #        it feels a little weird
 import psycopg2
 import re
-from typing import Set, Tuple, Sequence, List
+from typing import Set, Tuple, Sequence, List, Optional
 
 class Game:
     '''A game played between two people'''
@@ -116,7 +116,7 @@ class GridBoard (Board):
                         if 0 <= j0 < size and 0 <= j1 < size:
                             self[i0, i1].neighbor.add(self[j0, j1])
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         '''Return string version of board'''
         result = "  "
         for j in range(self.size):
@@ -169,6 +169,7 @@ class Space:
         # there's also a coord, I think,
         # a tuple, but that's not part of the base class
         self.liberty_of = set()  # groups of which this is a liberty
+        self.coord = None # type: Optional[Tuple[Int, Int]]
 
     def is_empty(self):
         '''does it not overlap with a stone?'''
