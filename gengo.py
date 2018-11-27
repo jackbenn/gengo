@@ -30,22 +30,22 @@
 #        it feels a little weird
 import psycopg2
 import re
-from typing import Set, Tuple, Sequence
+from typing import Set, Tuple, Sequence, List
 
 class Game:
     '''A game played between two people'''
-    def __init__(self, players: Tuple['Player', 'Player'], board: 'Board', name:str=None) -> None:
+    def __init__(self, players: Tuple['Player', 'Player'], board: 'GridBoard', name:str=None) -> None:
         self.players = players
-        self.moves = [] # Sequence[Tuple[int, int]]
+        self.moves = [] # type: List[Tuple[int, int]]
         self.board = board
         self.next_player = 0
         self.id = None
         self.name = name
     
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.board)
 
-    def move(self, location):
+    def move(self, location: Tuple[int, int]) -> None:
         self.board[location].play(self.players[self.next_player])
         self.moves.append(location)
         self.next_player = 1 - self.next_player
@@ -84,7 +84,7 @@ class Board:
     '''A fairly static object,
     created once for each size/shape of board and ruleset.'''
     def __init__(self):
-        ass
+        pass
 
 
 class GridBoard (Board):
@@ -92,8 +92,11 @@ class GridBoard (Board):
     with identical overlap and neighbor matrices for each space.
     Most boards are one of these.'''
 
-    def __init__(self, size, overlap, neighbor):
-        # overlap and touches are lists of tuples of positive numbers
+    def __init__(self,
+                 size: int,
+                 overlap: List[Tuple[int, int]],
+                 neighbor: List[Tuple[int, int]]) -> None:
+        # overlap and neighbor are lists of tuples of positive numbers
         # should assert some things about these, eg, overlap includes (0, 0)
         self.size = size
         self.grid = [[Space() for i0 in range(size)] for i1 in range(size)]
@@ -113,7 +116,7 @@ class GridBoard (Board):
                         if 0 <= j0 < size and 0 <= j1 < size:
                             self[i0, i1].neighbor.add(self[j0, j1])
 
-    def __str__(self):
+    def __str__(self) -> None:
         '''Return string version of board'''
         result = "  "
         for j in range(self.size):
@@ -135,11 +138,14 @@ class GridBoard (Board):
         result += '\n'
         return result
 
-    def __getitem__(self, coords):
+    def __getitem__(self,
+                    coords: Tuple[int, int]) -> "Space":
         '''Return the Space object at the specified coordinates'''
         return self.grid[coords[0]][coords[1]]
 
-    def __setitem__(self, coords, value):
+    def __setitem__(self,
+                    coords: Tuple[int, int],
+                    value: "Space") -> None:
         '''Set the Space object at the specified coordinates'''
         self.grid[coords[0]][coords[1]] = value
 
