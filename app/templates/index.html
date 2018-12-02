@@ -1,18 +1,37 @@
 <html>
     <head>
+    <script src="{{url_for('static', filename='brython/brython.js') }}"></script>
     {% if title %}
     <title>{{ title }}</title>
     {% else %}
     <title>Home page</title>
     {% endif %}
     </head>
-    <body>
-    <h1>Hello, {{ user.username }}!</h1>
+    <body onload="brython(1)">
+    <script type="text/python">
+from browser import document, alert
+
+# bind event 'click' on button to function echo
+
+def echo(ev):
+    document["rect1_1"].attrs['fill'] = "black"
+    alert(document["zone"].value)
+    document["zone"].value = 'foobar'
+
+document["rect1_1"].bind("click", echo)
+</script>
+
+<input id="zone">
+<button id="mybutton">click !</button>
+
+
+    <h1>Hi, {{ user.username }}!</h1>
 
     <svg width="500" height="500">
-        {% for x in 1,2,3 %}
-            {% for y in 1,2,3 %}
-                <circle cx="{{x*100}}" cy="{{y*100}}" r="10" stroke="red"/>
+        {% for x in 1,2,3,4,5 %}
+            {% for y in 1,2,3,4,5 %}
+                <circle cx="{{x*50}}" cy="{{y*50}}" r="10" stroke="red"/>
+                <rect id="{{'rect{}_{}'.format(x,y)}}" x="{{x*50}}" y="{{y*50}}" height="50" width="50" fill="lightgray", stroke="red"/>
             {% endfor %}
         {% endfor %}
     </svg>
