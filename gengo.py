@@ -21,7 +21,7 @@
 #        after, or at the same time as others of that player?
 #        (currently: same time)
 #    The current option seems the most logical and easiest to code.
-# Should it be legal to play inside the overlap of one's own stones? (currently: yes)
+# Should it be legal to play inside the overlap of one's own stones? (currently: no)
 #    Pro:
 #        it avoids the weird inability to connect stones
 #    Con:
@@ -31,6 +31,20 @@
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
+
+class Rules:
+    '''A group of options to control the play of the game
+    overlap and neighbor are lists of tuples of positive numbers
+    should assert some things about these, eg, overlap includes (0, 0)
+    '''
+    def __init__(self,   
+                 overlap: List[Tuple[int, int]],
+                 neighbor: List[Tuple[int, int]],
+                 size:int=11) -> None:
+        self.size = size
+        self.overlap = overlap
+        self.neighbor = neighbor
+
 
 class Game:
     '''A game played between two people'''
@@ -93,39 +107,35 @@ class GridBoard (Board):
     Most boards are one of these.'''
 
     def __init__(self,
-                 size: int,
-                 overlap: List[Tuple[int, int]],
-                 neighbor: List[Tuple[int, int]]) -> None:
-        # overlap and neighbor are lists of tuples of positive numbers
-        # should assert some things about these, eg, overlap includes (0, 0)
-        self.size = size
-        self.grid = [[Space() for i0 in range(size)] for i1 in range(size)]
-        for i0 in range(size):
-            for i1 in range(size):
+                 rules:Rules) -> None:
+        self.rules = rules
+        self.grid = [[Space() for i0 in range(rules.size)] for i1 in range(rules.size)]
+        for i0 in range(rules.size):
+            for i1 in range(rules.size):
                 space = self[i0, i1]
                 space.coord = (i0, i1)
                 for dir in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
-                    for x in overlap:
+                    for x in rules.overlap:
                         j0 = i0 + x[0] * dir[0]
                         j1 = i1 + x[1] * dir[1]
-                        if 0 <= j0 < size and 0 <= j1 < size:
+                        if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
                             self[i0, i1].overlap.add(self[j0, j1])
-                    for x in neighbor:
+                    for x in rules.neighbor:
                         j0 = i0 + x[0] * dir[0]
                         j1 = i1 + x[1] * dir[1]
-                        if 0 <= j0 < size and 0 <= j1 < size:
+                        if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
                             self[i0, i1].neighbor.add(self[j0, j1])
 
     def __str__(self) -> str:
         '''Return string version of board'''
         result = "  "
-        for j in range(self.size):
+        for j in range(self.rules.size):
             result += '{0:3d}'.format(j)
         result += '\n'
 
-        for i in range(self.size):
+        for i in range(self.rules.size):
             result += '{0:3d} '.format(i)
-            for j in range(self.size):
+            for j in range(self.rules.size):
                 space = self[i, j]
                 if space.is_empty():
                     result += '.  '
@@ -296,8 +306,10 @@ class Group:
 
 
 if __name__ == '__main__':
-    gb = GridBoard(11, [(0, 0), (1, 0), (0, 1), (1, 1)],
-                       [(2, 0), (0, 2), (2, 1), (1, 2)])
+    rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
+                  [(2, 0), (0, 2), (2, 1), (1, 2)],
+                  11)
+    gb = GridBoard(rules)
     #gb = GridBoard(11, [(0, 0)],
     #                   [(1, 0), (0, 1)])
     print(gb)
