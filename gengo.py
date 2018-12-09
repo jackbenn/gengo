@@ -21,7 +21,8 @@
 #        after, or at the same time as others of that player?
 #        (currently: same time)
 #    The current option seems the most logical and easiest to code.
-# Should it be legal to play inside the overlap of one's own stones? (currently: no)
+# Should it be legal to play inside the overlap of one's own stones?
+#   (currently: no)
 #    Pro:
 #        it avoids the weird inability to connect stones
 #    Con:
@@ -32,15 +33,16 @@ import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
 
+
 class Rules:
     '''A group of options to control the play of the game
     overlap and neighbor are lists of tuples of positive numbers
     should assert some things about these, eg, overlap includes (0, 0)
     '''
-    def __init__(self,   
+    def __init__(self,
                  overlap: List[Tuple[int, int]],
                  neighbor: List[Tuple[int, int]],
-                 size:int=11) -> None:
+                 size: int=11) -> None:
         self.size = size
         self.overlap = overlap
         self.neighbor = neighbor
@@ -48,14 +50,17 @@ class Rules:
 
 class Game:
     '''A game played between two people'''
-    def __init__(self, players: Tuple['Player', 'Player'], board: 'GridBoard', name:str=None) -> None:
+    def __init__(self,
+                 players: Tuple['Player', 'Player'],
+                 board: 'GridBoard',
+                 name: str=None) -> None:
         self.players = players
-        self.moves = [] # type: List[Tuple[int, int]]
+        self.moves = []  # type: List[Tuple[int, int]]
         self.board = board
         self.next_player = 0
         self.id = None
         self.name = name
-    
+
     def __str__(self) -> str:
         return str(self.board)
 
@@ -70,7 +75,6 @@ class Game:
         cur = conn.cursor()
         cur.execute('''select id, name, player1, player2 from game''')
         row = cur.fetchone()
-        
 
     def save(self, conn):
         '''
@@ -78,21 +82,24 @@ class Game:
         Otherwise: save recent moves
         '''
         cur = conn.cursor()
-        
+
         if self.id is None:
-            cur.execute("insert into game (player1, player2) values (%s, %s) returning id",
+            cur.execute("""insert into game (player1, player2)
+                           values (%s, %s) returning id""",
                         (self.players[0].id,
                          self.players[1].id))
             self.id = cur.fetchone()[0]
         sequence = 0
         for move in self.moves:
-            cur.execute('insert into move (game, row, col, sequence) values (%s, %s, %s, %s)',
+            cur.execute("""insert into move (game, row, col, sequence)
+                        values (%s, %s, %s, %s)""",
                         (self.id,
                          move[0],
                          move[1],
                          sequence))
             sequence += 1
         conn.commit()
+
 
 class Board:
     '''A fairly static object,
@@ -107,9 +114,10 @@ class GridBoard (Board):
     Most boards are one of these.'''
 
     def __init__(self,
-                 rules:Rules) -> None:
+                 rules: Rules) -> None:
         self.rules = rules
-        self.grid = [[Space() for i0 in range(rules.size)] for i1 in range(rules.size)]
+        self.grid = [[Space() for i0 in range(rules.size)]
+                     for i1 in range(rules.size)]
         for i0 in range(rules.size):
             for i1 in range(rules.size):
                 space = self[i0, i1]
@@ -141,7 +149,7 @@ class GridBoard (Board):
                     result += '.  '
                 elif space.stone is not None:
                     result += '{}{:<2d}'.format(space.stone.owner.symbol,
-                                           space.stone.group.count)
+                                                space.stone.group.count)
                 else:
                     result += '*  '
             result += '\n'
@@ -179,7 +187,7 @@ class Space:
         # there's also a coord, I think,
         # a tuple, but that's not part of the base class
         self.liberty_of = set()  # groups of which this is a liberty
-        self.coord = None # type: Optional[Tuple[Int, Int]]
+        self.coord = None  # type: Optional[Tuple[Int, Int]]
 
     def is_empty(self):
         '''does it not overlap with a stone?'''
@@ -271,7 +279,7 @@ class Group:
         Group.groupcount += 1
         self.stones = [stone]
         self.owner = stone.owner
-        self.liberties = set() # type: Set[Space]
+        self.liberties = set()  # type: Set[Space]
         for space in stone.location.neighbor:
             if space.is_empty():
                 self.liberties.add(space)
@@ -310,7 +318,7 @@ if __name__ == '__main__':
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
                   11)
     gb = GridBoard(rules)
-    #gb = GridBoard(11, [(0, 0)],
+    # gb = GridBoard(11, [(0, 0)],
     #                   [(1, 0), (0, 1)])
     print(gb)
 
@@ -369,5 +377,5 @@ if __name__ == '__main__':
         game.move(next)
         print(game)
     conn = psycopg2.connect("dbname='gengo'")
-    #conn.set_session(autocommit=True)
+    # conn.set_session(autocommit=True)
     game.save(conn)
