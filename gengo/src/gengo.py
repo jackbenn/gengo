@@ -32,7 +32,7 @@
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
-
+import ast
 
 class Rules:
     '''A group of options to control the play of the game
@@ -156,6 +156,25 @@ class GridBoard (Board):
         result += '\n'
         return result
 
+    def colors(self) -> str:
+        '''Return list of lists of colors to paint on the server'''
+        empty_color = 'sandybrown' # type:str
+        overlap_color = 'grey' # type: str
+        result = []
+
+        for i in range(self.rules.size):
+            row = []
+            for j in range(self.rules.size):
+                space = self[i, j]
+                if space.is_empty():
+                    row.append(empty_color)
+                elif space.stone is not None:
+                    row.append(space.stone.owner.color)
+                else:
+                    row.append(overlap_color)
+            result.append(row)
+        return str(result)
+
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":
         '''Return the Space object at the specified coordinates'''
@@ -172,10 +191,11 @@ class GridBoard (Board):
 
 
 class Player:
-    def __init__(self, name, symbol, id):
+    def __init__(self, name, symbol, color, id):
         self.id = id
         self.name = name
         self.symbol = symbol  # should be single character, for printing
+        self.color = color
 
 
 class Space:
@@ -322,8 +342,8 @@ if __name__ == '__main__':
     #                   [(1, 0), (0, 1)])
     print(gb)
 
-    p1 = Player("X", "X", 1)
-    p2 = Player("O", "O", 2)
+    p1 = Player("X", "X", "black", 1)
+    p2 = Player("O", "O", "white", 2)
     '''
     gb[2, 2].play(p1)
     print(gb)
@@ -371,7 +391,7 @@ if __name__ == '__main__':
     while (True):
         move = input()
         if re.match("\s*\d+\s*,\s*\d+\s*", move):
-            move = eval(move)
+            move = ast.literal_eval(move)
         else:
             break
         game.move(move)

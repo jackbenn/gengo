@@ -4,6 +4,7 @@
 
 import asyncio
 import websockets
+import ast
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game
 
@@ -12,13 +13,12 @@ async def start_game(websocket, path):
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
                   11)
-    gb = GridBoard(rules)
+    board = GridBoard(rules)
 
-    p1 = Player("X", "X", 1)
-    p2 = Player("O", "O", 2)
+    p1 = Player("X", "X", "black", 1)
+    p2 = Player("O", "O", "white", 2)
 
-    game = Game((p1, p2), gb)
-
+    game = Game((p1, p2), board)
 
     while True:
         print("inside loop")
@@ -26,11 +26,11 @@ async def start_game(websocket, path):
 
         move = await websocket.recv()
         print(f"< ({move})")
-        move = eval(move)
+        move = ast.literal_eval(move)
         game.move(move)
         print(game)
 
-        response = str(game)
+        response = str(board.colors())
 
         await websocket.send(response)
         print(f"> ({response})")
