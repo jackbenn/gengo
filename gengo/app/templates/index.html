@@ -14,7 +14,7 @@
         <svg width="500" height="500">
             {% for x in 1,2,3,4,5,6 %}
                 {% for y in 1,2,3,4,5 %}
-                    <rect id="{{'space_{}_{}'.format(x,y)}}" x="{{x*50}}" y="{{y*50}}" height="50" width="50" fill="lightgray", stroke="red"/>
+                    <rect id="{{'{},{}'.format(x,y)}}" x="{{x*50}}" y="{{y*50}}" height="50" width="50" fill="lightgray", stroke="red"/>
                 {% endfor %}
             {% endfor %}
         </svg>

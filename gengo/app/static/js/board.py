@@ -12,9 +12,8 @@ def on_click(ev):
     ws.send(ev.target.id)
 
 
-
 for x in [1,2,3,4,5]:
     for y in [1,2,3,4,5]:
-        ident = "space_{}_{}".format(x,y)
+        ident = "{},{}".format(x,y)
         document[ident].bind("click", on_click)
 

@@ -371,10 +371,10 @@ if __name__ == '__main__':
     while (True):
         move = input()
         if re.match("\s*\d+\s*,\s*\d+\s*", move):
-            next = eval(move)
+            move = eval(move)
         else:
             break
-        game.move(next)
+        game.move(move)
         print(game)
     conn = psycopg2.connect("dbname='gengo'")
     # conn.set_session(autocommit=True)
