@@ -28,8 +28,12 @@ Enter a move as a tuple of a row and a column, e.g.
 ```
 2,3
 ```
+To run server, from this directory do
+```
+python start_server.py
+```
 
-To run web app, from the web directory, do:
+To run web app, from the `gengo/app` directory, do
 
 ```
 export FLASK_APP=routes.py

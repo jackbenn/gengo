@@ -9,7 +9,7 @@ ws.bind('message', on_message)
 
 def on_click(ev):
     document[ev.target.id].attrs['fill'] = "black"
-    ws.send('foobar')
+    ws.send(ev.target.id)
 
 
 

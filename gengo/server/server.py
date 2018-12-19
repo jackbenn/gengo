@@ -5,16 +5,18 @@
 import asyncio
 import websockets
 
+from ..src.gengo import Board
+
 async def hello(websocket, path):
-    print(f"got message")
 
-    name = await websocket.recv()
-    print(f"< {name}")
+    while True:
+        name = await websocket.recv()
+        print(f"< {name}")
 
-    greeting = f"Hello {name}!"
+        greeting = f"Clicked in {name}!"
 
-    await websocket.send(greeting)
-    print(f"> {greeting}")
+        await websocket.send(greeting)
+        print(f"> {greeting}")
 
 start_server = websockets.serve(hello, 'localhost', 8765)
 
