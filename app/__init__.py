@@ -2,4 +2,5 @@ from flask import Flask
 
 app = Flask(__name__)
 
-from app import routes
+# not sure what this was doing
+#from app import routes
