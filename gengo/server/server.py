@@ -9,10 +9,14 @@ import ast
 from ..src.gengo import Board, GridBoard, Rules, Player, Game
 
 async def start_game(websocket, path):
-    print("is this working?")
+
+    board_size = int(await websocket.recv())
+
+    print(f"creating a board of size {board_size}")
+
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
-                  11)
+                  board_size)
     board = GridBoard(rules)
 
     p1 = Player("X", "X", "black", 1)
