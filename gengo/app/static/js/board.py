@@ -7,8 +7,8 @@ def on_message(evt):
     #board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
     board = eval(evt.data)
-    for x in range(1, size):
-        for y in range(1, size):
+    for x in range(size):
+        for y in range(size):
             document[f"{x},{y}"].attrs['fill'] = board[x][y]
 
     #alert(f"Message received: {evt.data}")
@@ -21,8 +21,8 @@ def on_click(ev):
     ws.send(ev.target.id)
 
 
-for x in range(1, size):
-    for y in range(1, size):
+for x in range(size):
+    for y in range(size):
         ident = f"{x},{y}"
         document[ident].bind("click", on_click)
 
