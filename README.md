@@ -4,18 +4,10 @@ Python application to run a generalized version of go, in which a stone extends 
 
 ## Rules
 
-Gengo is similar to go, but stones have an a overlap region in which other stones cannot be played, and a neighbor region (beyond the immediate adjacent stones) in which stones are considered to be neighbors. For ordinary go, the overlap is only the space on which the stone is played, and the neighbors are the four points above and below that point.
+Gengo is a generalized version of go that allows stones to be placed on a finer-grained grid. Stones have an a overlap region in which other stones cannot be played, and a neighbor region (beyond the immediate adjacent stones) in which stones are considered to be neighbors. For the full rules look [here](Rules.md).
 
-Gengo can be played with any set of regions, but the default regions look like this:
-```
-  n n n
-n o o o n
-n o x o n
-n o o o n
-  n n n
-```
-where x is the stone itself, o show the overlap region, and any stones played at n are neighbors.
 
+F
 
 ## Usage
 

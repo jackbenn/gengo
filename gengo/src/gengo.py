@@ -12,23 +12,8 @@
 #    Application generates web page
 
 
-# Rule Questions:
-# Should suicide be legal? (currently: yes)
-# Should it be legal to kill one's own groups
-#        (not connected to the stone played)
-#        (currently: yes)
-#    If so, should the group with the stone played die before,
-#        after, or at the same time as others of that player?
-#        (currently: same time)
-#    The current option seems the most logical and easiest to code.
-# Should it be legal to play inside the overlap of one's own stones?
-#   (currently: no)
-#    Pro:
-#        it avoids the weird inability to connect stones
-#    Con:
-#        it doesn't solve the friendly-fire problem
-#        it makes stone-counting ineffective
-#        it feels a little weird
+
+
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
@@ -156,8 +141,11 @@ class GridBoard (Board):
         result += '\n'
         return result
 
+    def get_connections(self) -> List(Tuple):
+
     def colors(self) -> str:
-        '''Return list of lists of colors to paint on the server'''
+        '''Return list of lists of colors to paint on the server.
+        This will be replaced by...something else'''
         empty_color = 'sandybrown' # type:str
         overlap_color = 'grey' # type: str
         result = []
