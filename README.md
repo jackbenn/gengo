@@ -6,9 +6,6 @@ Python application to run a generalized version of go, in which a stone extends 
 
 Gengo is a generalized version of go that allows stones to be placed on a finer-grained grid. Stones have an a overlap region in which other stones cannot be played, and a neighbor region (beyond the immediate adjacent stones) in which stones are considered to be neighbors. For the full rules look [here](Rules.md).
 
-
-F
-
 ## Usage
 
 To run the python program, from this directory do
@@ -33,4 +30,4 @@ export FLASK_ENV=development
 flask run
 ```
 
-Note the web app is really just experimental so far.
+Note that this is still in pre-alpha and is mostly useful for understanding the game.
