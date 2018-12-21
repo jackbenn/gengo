@@ -10,6 +10,7 @@ def index():
     board_size = 17
     return render_template('index.html', user=user, board_size=board_size)
 
+
 @app.route('/game/')
 def game():
     return render_template('index.html', user=user)

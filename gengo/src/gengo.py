@@ -1,23 +1,22 @@
 #!python
 
 # iterating over sets when removing items?????
-
-# General logic:
-#    Application starts up, reads in Board from database
-#        maybe it generate overlap information, maybe it reads it in
-#    Application reads Game information
-#         (including Players, Users, Stones, and Groups)
-#    If a result of user choosing an action,
-#        Applcation performs that action
-#    Application generates web page
-
-
-
+"""
+General logic:
+    Application starts up, reads in Board from database
+        maybe it generate overlap information, maybe it reads it in
+    Application reads Game information
+        (including Players, Users, Stones, and Groups)
+    If a result of user choosing an action,
+         Application performs that action
+    Application generates web page
+"""
 
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
 import ast
+
 
 class Rules:
     '''A group of options to control the play of the game
@@ -141,13 +140,11 @@ class GridBoard (Board):
         result += '\n'
         return result
 
-    def get_connections(self) -> List(Tuple):
-
     def colors(self) -> str:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
-        empty_color = 'sandybrown' # type:str
-        overlap_color = 'grey' # type: str
+        empty_color = 'sandybrown'  # type:str
+        overlap_color = 'grey'  # type: str
         result = []
 
         for i in range(self.rules.size):
