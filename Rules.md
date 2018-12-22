@@ -30,7 +30,7 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 
 6. **Ko** A player may not make a play if it would capture a single stone, and the stone captured just played by the opponent, and that play captured a single stone. This is similar to the ko rule in ordinary go that prevents repeats. (not yet implemented)
 
-7. **End of game** The game is over when there are three passes in a row. (not yet implemented)
+7. **End of game** The game is over when there are three passes in a row.
 
 8. Scoring. The final score of each player is the number of their stones currently on the board. The player with the most stones is the winner. This is equivalent to the [original scoring method](https://senseis.xmp.net/?StoneScoring) in go, rarely used today. (not yet implemented)
 

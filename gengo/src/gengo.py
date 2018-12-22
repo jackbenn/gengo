@@ -44,12 +44,19 @@ class Game:
         self.next_player = 0
         self.id = None
         self.name = name
+        self.is_done = False
 
     def __str__(self) -> str:
         return str(self.board)
 
-    def move(self, location: Tuple[int, int]) -> None:
-        self.board[location].play(self.players[self.next_player])
+    def move(self, location: Optional[Tuple[int, int]]) -> None:
+        if location is None:
+            if (len(self.moves) > 1 and
+                  self.moves[-1] is None and
+                  self.moves[-2] is None):
+                self.is_done = True
+        else:
+            self.board[location].play(self.players[self.next_player])
         self.moves.append(location)
         self.next_player = 1 - self.next_player
 
@@ -375,12 +382,18 @@ if __name__ == '__main__':
 
     while (True):
         move = input()
-        if re.match("\s*\d+\s*,\s*\d+\s*", move):
+        if re.match("^\s*\d+\s*,\s*\d+\s*$", move):
             move = ast.literal_eval(move)
+        elif re.match("\s*", move):
+            move = None
         else:
-            break
+            continue
         game.move(move)
         print(game)
-    conn = psycopg2.connect("dbname='gengo'")
+
+        if game.is_done:
+            break
+    print("Game is complete")
+    #conn = psycopg2.connect("dbname='gengo'")
     # conn.set_session(autocommit=True)
-    game.save(conn)
+    #game.save(conn)
