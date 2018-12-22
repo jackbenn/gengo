@@ -22,6 +22,7 @@ class Rules:
     '''A group of options to control the play of the game
     overlap and neighbor are lists of tuples of positive numbers
     should assert some things about these, eg, overlap includes (0, 0)
+    Future options will be allowed around suicide.
     '''
     def __init__(self,
                  overlap: List[Tuple[int, int]],
@@ -39,6 +40,8 @@ class Game:
                  board: 'GridBoard',
                  name: str=None) -> None:
         self.players = players
+        self.players[0].index = 0
+        self.players[1].index = 1
         self.moves = []  # type: List[Tuple[int, int]]
         self.board = board
         self.next_player = 0
@@ -59,6 +62,14 @@ class Game:
             self.board[location].play(self.players[self.next_player])
         self.moves.append(location)
         self.next_player = 1 - self.next_player
+
+    def get_scores(self) -> Tuple[int, int]:
+        scores = [0, 0]
+        for space in self.board:
+            if space.stone is not None:
+                scores[space.stone.owner.index] += 1
+        return tuple(scores)
+
 
     # database methods. Should separate off as ORM.
     @staticmethod
@@ -147,6 +158,12 @@ class GridBoard (Board):
         result += '\n'
         return result
 
+    def __iter__(self):
+        """Iterate over all the spaces in a board."""
+        for i0 in range(self.rules.size):
+            for i1 in range(self.rules.size):
+                yield self[i0, i1]
+
     def colors(self) -> str:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
@@ -188,6 +205,7 @@ class Player:
         self.name = name
         self.symbol = symbol  # should be single character, for printing
         self.color = color
+        self.index = None  # the index of a player in a game; first play is 0
 
 
 class Space:
@@ -394,6 +412,7 @@ if __name__ == '__main__':
         if game.is_done:
             break
     print("Game is complete")
+    print(f"The final score is {game.get_scores()}")
     #conn = psycopg2.connect("dbname='gengo'")
     # conn.set_session(autocommit=True)
     #game.save(conn)
