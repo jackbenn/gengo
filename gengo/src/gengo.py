@@ -102,6 +102,13 @@ class Game:
             sequence += 1
         conn.commit()
 
+    def create_replay(self, moves_to_drop=1):
+        new_board = GridBoard(self.board.rules)
+        replay = Game(self.players, new_board, self.name)
+        for move in self.moves[:len(self.moves)-moves_to_drop]:
+            replay.move(move)
+        return replay
+
 
 class Board:
     '''A fairly static object,
@@ -402,11 +409,15 @@ if __name__ == '__main__':
         move = input()
         if re.match("^\s*\d+\s*,\s*\d+\s*$", move):
             move = ast.literal_eval(move)
-        elif re.match("\s*", move):
+            game.move(move)
+        elif re.match("\s*$", move):
             move = None
+            game.move(move)
+        elif re.match("^[Uu]", move):
+            print("Undoing last move")
+            game = game.create_replay()
         else:
             continue
-        game.move(move)
         print(game)
 
         if game.is_done:
