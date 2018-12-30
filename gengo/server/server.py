@@ -17,12 +17,11 @@ async def start_game(websocket, path):
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
                   board_size)
-    board = GridBoard(rules)
 
     p1 = Player("X", "X", "black", 1)
     p2 = Player("O", "O", "white", 2)
 
-    game = Game((p1, p2), board)
+    game = Game((p1, p2), rules)
 
     while True:
         print("inside loop")
@@ -34,7 +33,7 @@ async def start_game(websocket, path):
         game.move(move)
         print(game)
 
-        response = str(board.colors())
+        response = str(game.board.colors())
 
         await websocket.send(response)
         print(f"> ({response})")

@@ -20,19 +20,21 @@ class Rules:
         self.size = size
         self.overlap = overlap
         self.neighbor = neighbor
+        self.no_capture_back_ko = True
 
 
 class Game:
     '''A game played between two people'''
     def __init__(self,
                  players: Tuple['Player', 'Player'],
-                 board: 'GridBoard',
+                 rules: Rules,
                  name: str=None) -> None:
         self.players = players
         self.players[0].index = 0
         self.players[1].index = 1
         self.moves = []  # type: List[Tuple[int, int]]
-        self.board = board
+        self.board = GridBoard(rules)
+        self.rules = rules
         self.next_player = 0
         self.id = None
         self.name = name
@@ -43,7 +45,9 @@ class Game:
 
     def move(self, location: Optional[Tuple[int, int]]) -> None:
         self.moves.append(location)
+        print(self.moves)
         if location is None:
+            # check if it's the third pass
             if (len(self.moves) > 1 and
                   self.moves[-1] is None and
                   self.moves[-2] is None):
@@ -92,8 +96,7 @@ class Game:
         conn.commit()
 
     def create_replay(self, moves_to_drop=1):
-        new_board = GridBoard(self.board.rules)
-        replay = Game(self.players, new_board, self.name)
+        replay = Game(self.players, self.rules, self.name)
         for move in self.moves[:len(self.moves)-moves_to_drop]:
             replay.move(move)
         return replay
@@ -113,7 +116,7 @@ class GridBoard (Board):
 
     def __init__(self,
                  rules: Rules) -> None:
-        self.rules = rules
+        self.size = rules.size
         self.grid = [[Space() for i0 in range(rules.size)]
                      for i1 in range(rules.size)]
         for i0 in range(rules.size):
@@ -135,13 +138,13 @@ class GridBoard (Board):
     def __str__(self) -> str:
         '''Return string version of board'''
         result = "  "
-        for j in range(self.rules.size):
+        for j in range(self.size):
             result += '{0:3d}'.format(j)
         result += '\n'
 
-        for i in range(self.rules.size):
+        for i in range(self.size):
             result += '{0:3d} '.format(i)
-            for j in range(self.rules.size):
+            for j in range(self.size):
                 space = self[i, j]
                 if space.is_empty():
                     result += '.  '
@@ -156,8 +159,8 @@ class GridBoard (Board):
 
     def __iter__(self):
         """Iterate over all the spaces in a board."""
-        for i0 in range(self.rules.size):
-            for i1 in range(self.rules.size):
+        for i0 in range(self.size):
+            for i1 in range(self.size):
                 yield self[i0, i1]
 
     def colors(self) -> str:
@@ -167,9 +170,9 @@ class GridBoard (Board):
         overlap_color = 'grey'  # type: str
         result = []
 
-        for i in range(self.rules.size):
+        for i in range(self.size):
             row = []
-            for j in range(self.rules.size):
+            for j in range(self.size):
                 space = self[i, j]
                 if space.is_empty():
                     row.append(empty_color)
@@ -221,7 +224,7 @@ class Space:
 
     def play(self, player):
         if not self.is_empty():
-            raise InvalidMove("Moved inside overlad")
+            raise InvalidMove("Moved inside overlap")
         # create stone which will create group and find liberties
         self.stone = Stone(player, self)
         # add to existing groups
@@ -255,6 +258,10 @@ class Space:
             if group.owner != player:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
+        # check if it's a single-stone capture for ko
+        if (len(moribund_groups) == 1 and
+            len(list(moribund_groups)[0].stones) == 1):
+                pass
         # they all die at the same time
         # (it's possible one might open liberties for another,
         # but that would lead to indeterminate situations)
@@ -344,58 +351,14 @@ if __name__ == '__main__':
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
                   11)
-    gb = GridBoard(rules)
-    # gb = GridBoard(11, [(0, 0)],
-    #                   [(1, 0), (0, 1)])
-    print(gb)
 
     p1 = Player("X", "X", "black", 1)
     p2 = Player("O", "O", "white", 2)
-    '''
-    gb[2, 2].play(p1)
-    print(gb)
 
-    gb[3, 4].play(p2)
-    print(gb)
-
-    gb[0, 2].play(p2)
-    print(gb)
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[1, 0].play(p2)
-    print(gb)
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[4, 0].play(p2)
-    print(gb)
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[5, 2].play(p2)
-    print(gb)
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    b[0, 4].play(p2)
-    print(gb)
-
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[1, 6].play(p1)
-    print(gb)
-
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[3, 6].play(p1)
-    print(gb)
-
-    print("liberties: ", len(gb[0, 2].stone.group.liberties))
-
-    gb[3, 2].play(p1)
-    print(gb)
-    '''
-
-    game = Game((p1, p2), gb)
+    game = Game((p1, p2), rules)
 
     while (True):
+        print(game)
         move = input()
         if re.match("^\s*\d+\s*,\s*\d+\s*$", move):
             move = ast.literal_eval(move)
@@ -403,6 +366,7 @@ if __name__ == '__main__':
                 game.move(move)
             except InvalidMove as e:
                 print(e)
+                game = game.create_replay()
 
         elif re.match("\s*$", move):
             move = None
@@ -412,10 +376,10 @@ if __name__ == '__main__':
             game = game.create_replay()
         else:
             continue
-        print(game)
 
         if game.is_done:
             break
+    print(game)
     print("Game is complete")
     print(f"The final score is {game.get_scores()}")
     #conn = psycopg2.connect("dbname='gengo'")
