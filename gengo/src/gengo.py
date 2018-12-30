@@ -1,22 +1,11 @@
 #!python
-
-# iterating over sets when removing items?????
-"""
-General logic:
-    Application starts up, reads in Board from database
-        maybe it generate overlap information, maybe it reads it in
-    Application reads Game information
-        (including Players, Users, Stones, and Groups)
-    If a result of user choosing an action,
-         Application performs that action
-    Application generates web page
-"""
-
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
 import ast
 
+class InvalidMove(Exception):
+    pass
 
 class Rules:
     '''A group of options to control the play of the game
@@ -53,6 +42,7 @@ class Game:
         return str(self.board)
 
     def move(self, location: Optional[Tuple[int, int]]) -> None:
+        self.moves.append(location)
         if location is None:
             if (len(self.moves) > 1 and
                   self.moves[-1] is None and
@@ -60,7 +50,6 @@ class Game:
                 self.is_done = True
         else:
             self.board[location].play(self.players[self.next_player])
-        self.moves.append(location)
         self.next_player = 1 - self.next_player
 
     def get_scores(self) -> Tuple[int, int]:
@@ -231,7 +220,8 @@ class Space:
         return self.overlapcount == 0
 
     def play(self, player):
-        assert(self.is_empty())
+        if not self.is_empty():
+            raise InvalidMove("Moved inside overlad")
         # create stone which will create group and find liberties
         self.stone = Stone(player, self)
         # add to existing groups
@@ -409,7 +399,11 @@ if __name__ == '__main__':
         move = input()
         if re.match("^\s*\d+\s*,\s*\d+\s*$", move):
             move = ast.literal_eval(move)
-            game.move(move)
+            try:
+                game.move(move)
+            except InvalidMove as e:
+                print(e)
+
         elif re.match("\s*$", move):
             move = None
             game.move(move)
