@@ -13,7 +13,7 @@
                 type="text/python"></script>
 
         <div id="rules" board_size={{board_size}}></div>
-        <svg width="750" height="750">
+        <svg width="750" height="750" id="svg">
             {% for x in range(board_size) %}
                 {% for y in range(board_size) %}
                     <rect id="{{'{},{}'.format(x,y)}}"

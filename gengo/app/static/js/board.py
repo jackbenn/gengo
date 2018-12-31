@@ -8,12 +8,31 @@ board_size = None
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    board = json.loads(evt.data)
-
+    board, stones = json.loads(evt.data)
+    print(board)
+    print(stones)
     for x in range(board_size):
         for y in range(board_size):
             document[f"{x},{y}"].attrs['fill'] = board[x][y]
-
+    stones_div = document['svg']
+    blacks, whites = stones
+    for stone in blacks:
+        circle = document.createElement("circle")
+        circle.attrs['cx'] = stone[0] * 30
+        circle.attrs['cy'] = stone[1] * 30
+        circle.attrs['r'] = "100"
+        circle.attrs['stroke'] = 'red'
+        circle.attrs['fill'] = 'white'
+        alert(circle)
+        stones_div <= circle
+    for stone in whites:
+        circle = document.createElement("circle")
+        circle.attrs['cx'] = stone[0]
+        circle.attrs['cy'] = stone[1]
+        circle.attrs['r'] = 30
+        circle.attrs['stroke'] = 'red'
+        circle.attrs['fill'] = 'white'
+        stones_div <= circle
 
 def on_click(ev):
     document[ev.target.id].attrs['fill'] = "black"

@@ -30,4 +30,6 @@ export FLASK_ENV=development
 flask run
 ```
 
+To run tests, do `pytest` from this directory.
+
 Note that this is still in pre-alpha and is mostly useful for understanding the game.

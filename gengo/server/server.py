@@ -41,10 +41,8 @@ async def start_game(websocket, path):
 
         response = json.dumps(game.board.colors())
         print(f">json ({response})")
-        print(f">str  ({str(game.board.colors())})")
 
         await websocket.send(response)
-        print(f"> ({response})")
 
 
 start_server = websockets.serve(start_game, 'localhost', 8765)

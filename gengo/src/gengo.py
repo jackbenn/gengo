@@ -170,7 +170,7 @@ class GridBoard (Board):
         This will be replaced by...something else'''
         empty_color = 'sandybrown'  # type:str
         overlap_color = 'grey'  # type: str
-        result = []
+        board = []
 
         for i in range(self.size):
             row = []
@@ -178,12 +178,14 @@ class GridBoard (Board):
                 space = self[i, j]
                 if space.is_empty():
                     row.append(empty_color)
-                elif space.stone is not None:
-                    row.append(space.stone.owner.color)
                 else:
                     row.append(overlap_color)
-            result.append(row)
-        return result
+            board.append(row)
+        stones = [[], []]
+        for space in self:
+            if space.stone is not None:
+                stones[space.stone.owner.index].append(space.coord)
+        return (board, stones)
 
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":

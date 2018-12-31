@@ -32,7 +32,7 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 
 7. **End of game** The game is over when there are three passes in a row.
 
-8. Scoring. The final score of each player is the number of their stones currently on the board. The player with the most stones is the winner. This is equivalent to the [original scoring method](https://senseis.xmp.net/?StoneScoring) in go, rarely used today. (not yet implemented)
+8. Scoring. The final score of each player is the number of their stones currently on the board. The player with the most stones is the winner. This is equivalent to the [original scoring method](https://senseis.xmp.net/?StoneScoring) in go, rarely used today.
 
 ## Rule Questions:
 
@@ -51,11 +51,11 @@ where x is the stone itself, o shows the overlap region, and any stones played a
         * it doesn't solve the friendly-fire problem
         * it makes stone-counting ineffective
         * it feels a little weird
-4. How should kos work? (currently: not handled)
-    * Probably use: can't capture last-played stone alone
-    * ordinarily (last-move) Japanese ko won't work, as kos might be captured at more than one space.
-    * ordinarily (Chinese style) super-ko is also an option, but it would be difficult to keep track of whether all the possible positions of a ko were exhausted, and each turn in a ko battle would take several turns.
-5. How do we score? (currently: we don't)
-    * Stone counting. This is the easiest to count and the most consistent logically, but it's a pain to play. This is particularly true here, where the end becomes a puzzle of squeezing stones in without killing eyes.
-    * Area counting. Here we'd count total number of spaces either surrounded or overlapped. Spaces overlapped by stone of both color would count as neutral, or maybe be split to make it sum to the size of the board.
-    * Territory counting. This might be a bit easier than area counting, but to do this you'd need to specify a ratio of the value of captured stones to surrounded spaces, and there might players could take advantage of that to fill in opponent's territory.
+4. How should kos work? (currently singleton recapture)
+    * Singleton recapture: this is the best option. It's not standard it any version of go, but it's essitially the same as the (last-move) ko rule in ordinary go. A move here is prohibited if the last play captured a single (opposing) stone, and the move would capture that stone and nothing else.
+    * the ordinarily (last-move) Japanese ko rule won't work, as kos might be captured at more than one space so it wouldn't handle many repeated moves.
+    * the ordinarily (Chinese style) super-ko rule is an option, but it would be difficult to keep track of whether all the possible positions of a ko were exhausted, and each turn in a ko battle would take several turns.
+5. How do we score? (currently: Stone scoring)
+    * Stone scoring. This is the easiest to count and the most consistent logically, but it's a pain to play. This is particularly true here, where the end becomes a puzzle of squeezing stones in without killing eyes.
+    * Area scoring. Here we'd count total number of spaces either surrounded or overlapped. Spaces overlapped by stone of both color would count as neutral, or maybe be split to make it sum to the size of the board.
+    * Territory scoring. This might be a bit easier than area counting, but to do this you'd need to specify a ratio of the value of captured stones to surrounded spaces, and there might players could take advantage of that to fill in opponent's territory.
