@@ -4,6 +4,7 @@
 
 import asyncio
 import websockets
+import json
 import ast
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
@@ -38,7 +39,9 @@ async def start_game(websocket, path):
             game = game.create_replay()
         print(game)
 
-        response = str(game.board.colors())
+        response = json.dumps(game.board.colors())
+        print(f">json ({response})")
+        print(f">str  ({str(game.board.colors())})")
 
         await websocket.send(response)
         print(f"> ({response})")

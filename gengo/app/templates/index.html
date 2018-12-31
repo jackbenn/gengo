@@ -13,13 +13,17 @@
                 type="text/python"></script>
 
         <div id="rules" board_size={{board_size}}></div>
-        <svg width="500" height="500">
+        <svg width="750" height="750">
             {% for x in range(board_size) %}
                 {% for y in range(board_size) %}
                     <rect id="{{'{},{}'.format(x,y)}}"
-                          x="{{x*25}}" y="{{y*25}}"
-                          height="25" width="25" fill="sandybrown", stroke="red"/>
+                          x="{{x*30}}" y="{{y*30}}"
+                          height="30" width="30" fill="sandybrown"/>
                 {% endfor %}
+            {% endfor %}
+            {% for x in range(board_size) %}
+                <line x1="15" x2="{{30*board_size-15}}" y1="{{15+x*30}}" y2="{{15+x*30}}" stroke="red"></line>
+                <line y1="15" y2="{{30*board_size-15}}" x1="{{15+x*30}}" x2="{{15+x*30}}" stroke="red"></line>
             {% endfor %}
         </svg>
     </body>

@@ -1,13 +1,14 @@
 from browser import document, alert
 from browser import websocket
 import browser
+import json
 board_size = None
 
 
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    board = eval(evt.data)
+    board = json.loads(evt.data)
 
     for x in range(board_size):
         for y in range(board_size):

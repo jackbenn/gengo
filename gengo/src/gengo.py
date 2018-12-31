@@ -165,7 +165,7 @@ class GridBoard (Board):
             for i1 in range(self.size):
                 yield self[i0, i1]
 
-    def colors(self) -> str:
+    def colors(self) -> List[List[str]]:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
         empty_color = 'sandybrown'  # type:str
@@ -183,7 +183,7 @@ class GridBoard (Board):
                 else:
                     row.append(overlap_color)
             result.append(row)
-        return str(result)
+        return result
 
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":
