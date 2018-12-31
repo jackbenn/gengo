@@ -39,6 +39,7 @@ class Game:
         self.id = None
         self.name = name
         self.is_done = False
+        self.last_move_single_capture = None # type: Optional[Stone]
 
     def __str__(self) -> str:
         return str(self.board)
@@ -53,7 +54,7 @@ class Game:
                   self.moves[-2] is None):
                 self.is_done = True
         else:
-            self.board[location].play(self.players[self.next_player])
+            self.board[location].play(self.players[self.next_player], self)
         self.next_player = 1 - self.next_player
 
     def get_scores(self) -> Tuple[int, int]:
@@ -222,9 +223,12 @@ class Space:
         '''does it not overlap with a stone?'''
         return self.overlapcount == 0
 
-    def play(self, player):
+    def play(self, player, game):
         if not self.is_empty():
             raise InvalidMove("Moved inside overlap")
+
+        possible_ko = False
+
         # create stone which will create group and find liberties
         self.stone = Stone(player, self)
         # add to existing groups
@@ -259,9 +263,19 @@ class Space:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
         # check if it's a single-stone capture for ko
-        if (len(moribund_groups) == 1 and
-            len(list(moribund_groups)[0].stones) == 1):
-                pass
+        if game.rules.no_capture_back_ko:
+            if (len(moribund_groups) == 1 and
+                len(list(moribund_groups)[0].stones) == 1):
+                    # check if we captured the last move
+                    # (and that made a single capture)
+                    if (game.last_move_single_capture ==
+                        list(list(moribund_groups)[0].stones)[0]):
+                        # then this is a ko (unless there's suicide)
+                        possible_ko = True
+                    game.last_move_single_capture = self.stone
+            else:
+                game.last_move_single_capture = None
+
         # they all die at the same time
         # (it's possible one might open liberties for another,
         # but that would lead to indeterminate situations)
@@ -274,6 +288,14 @@ class Space:
             if group.owner == player:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
+        # if there were suicides, it won't lead to a ko
+        if game.rules.no_capture_back_ko:
+            if len(moribund_groups):
+                game.last_move_single_capture = None
+                possible_ko = False
+        if possible_ko:
+            raise InvalidMove("Ko (captured last move which captured a single stone)")
+
         for group in moribund_groups:
             group.die()
 

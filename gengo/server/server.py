@@ -6,7 +6,7 @@ import asyncio
 import websockets
 import ast
 
-from ..src.gengo import Board, GridBoard, Rules, Player, Game
+from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
 async def start_game(websocket, path):
 
@@ -30,7 +30,12 @@ async def start_game(websocket, path):
         move = await websocket.recv()
         print(f"< ({move})")
         move = ast.literal_eval(move)
-        game.move(move)
+
+        try:
+            game.move(move)
+        except InvalidMove as e:
+            print(e)
+            game = game.create_replay()
         print(game)
 
         response = str(game.board.colors())
