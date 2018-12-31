@@ -4,8 +4,10 @@ import re
 from typing import Set, Tuple, Sequence, List, Optional
 import ast
 
+
 class InvalidMove(Exception):
     pass
+
 
 class Rules:
     '''A group of options to control the play of the game
@@ -38,8 +40,8 @@ class Game:
         self.next_player = 0
         self.id = None
         self.name = name
-        self.is_done = False
-        self.last_move_single_capture = None # type: Optional[Stone]
+        self.is_done = False  # type: bool
+        self.last_move_single_capture = None  # type: Optional[Stone]
 
     def __str__(self) -> str:
         return str(self.board)
@@ -50,20 +52,19 @@ class Game:
         if location is None:
             # check if it's the third pass
             if (len(self.moves) > 1 and
-                  self.moves[-1] is None and
-                  self.moves[-2] is None):
+               self.moves[-1] is None and
+               self.moves[-2] is None):
                 self.is_done = True
         else:
             self.board[location].play(self.players[self.next_player], self)
         self.next_player = 1 - self.next_player
 
-    def get_scores(self) -> Tuple[int, int]:
+    def get_scores(self) -> Tuple[int, ...]:
         scores = [0, 0]
         for space in self.board:
             if space.stone is not None:
                 scores[space.stone.owner.index] += 1
         return tuple(scores)
-
 
     # database methods. Should separate off as ORM.
     @staticmethod
@@ -265,11 +266,11 @@ class Space:
         # check if it's a single-stone capture for ko
         if game.rules.no_capture_back_ko:
             if (len(moribund_groups) == 1 and
-                len(list(moribund_groups)[0].stones) == 1):
+               len(list(moribund_groups)[0].stones) == 1):
                     # check if we captured the last move
                     # (and that made a single capture)
                     if (game.last_move_single_capture ==
-                        list(list(moribund_groups)[0].stones)[0]):
+                       list(list(moribund_groups)[0].stones)[0]):
                         # then this is a ko (unless there's suicide)
                         possible_ko = True
                     game.last_move_single_capture = self.stone
@@ -294,7 +295,7 @@ class Space:
                 game.last_move_single_capture = None
                 possible_ko = False
         if possible_ko:
-            raise InvalidMove("Ko (captured last move which captured a single stone)")
+            raise InvalidMove("Ko (captured singleton capture)")
 
         for group in moribund_groups:
             group.die()
@@ -381,9 +382,9 @@ if __name__ == '__main__':
 
     while (True):
         print(game)
-        move = input()
-        if re.match("^\s*\d+\s*,\s*\d+\s*$", move):
-            move = ast.literal_eval(move)
+        move_input = input()
+        if re.match("^\s*\d+\s*,\s*\d+\s*$", move_input):
+            move = ast.literal_eval(move_input)
             try:
                 game.move(move)
             except InvalidMove as e:
@@ -404,6 +405,8 @@ if __name__ == '__main__':
     print(game)
     print("Game is complete")
     print(f"The final score is {game.get_scores()}")
-    #conn = psycopg2.connect("dbname='gengo'")
-    # conn.set_session(autocommit=True)
-    #game.save(conn)
+    """
+    conn = psycopg2.connect("dbname='gengo'")
+    conn.set_session(autocommit=True)
+    game.save(conn)
+    """
