@@ -1,6 +1,8 @@
-from browser import document, alert
+from browser import document, alert, svg
 from browser import websocket
 import browser
+from browser.html import LI
+ 
 import json
 board_size = None
 
@@ -14,25 +16,22 @@ def on_message(evt):
     for x in range(board_size):
         for y in range(board_size):
             document[f"{x},{y}"].attrs['fill'] = board[x][y]
-    stones_div = document['svg']
+    stones_div = document['stones']
     blacks, whites = stones
     for stone in blacks:
-        circle = document.createElement("circle")
-        circle.attrs['cx'] = stone[0] * 30
-        circle.attrs['cy'] = stone[1] * 30
-        circle.attrs['r'] = "100"
-        circle.attrs['stroke'] = 'red'
-        circle.attrs['fill'] = 'white'
-        alert(circle)
+        circle = svg.circle(fill="black", stroke="red",
+                            cx=stone[0] * 30 + 15,
+                            cy=stone[1] * 30 + 15, r="15")
         stones_div <= circle
     for stone in whites:
-        circle = document.createElement("circle")
-        circle.attrs['cx'] = stone[0]
-        circle.attrs['cy'] = stone[1]
-        circle.attrs['r'] = 30
-        circle.attrs['stroke'] = 'red'
-        circle.attrs['fill'] = 'white'
+        circle = svg.circle(fill="white", stroke="red",
+                            cx=stone[0] * 30 + 15,
+                            cy=stone[1] * 30 + 15, r="15")
         stones_div <= circle
+    ul = document["ul"]
+    for i in range(5):
+        li = document.createElement("LI")
+        ul <= li
 
 def on_click(ev):
     document[ev.target.id].attrs['fill'] = "black"
