@@ -59,13 +59,6 @@ class Game:
             self.board[location].play(self.players[self.next_player], self)
         self.next_player = 1 - self.next_player
 
-    def get_scores(self) -> Tuple[int, ...]:
-        scores = [0, 0]
-        for space in self.board:
-            if space.stone is not None:
-                scores[space.stone.owner.index] += 1
-        return tuple(scores)
-
     # database methods. Should separate off as ORM.
     @staticmethod
     def load(conn, id):
@@ -165,7 +158,14 @@ class GridBoard (Board):
             for i1 in range(self.size):
                 yield self[i0, i1]
 
-    def colors(self) -> List[List[str]]:
+    def get_scores(self) -> Tuple[int, ...]:
+        scores = [0, 0]
+        for space in self:
+            if space.stone is not None:
+                scores[space.stone.owner.index] += 1
+        return tuple(scores)
+
+    def colors(self) -> Tuple[List[List[str]], List[Tuple[int, int]], Tuple[int, int]]:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
         empty_color = 'sandybrown'  # type:str
@@ -185,7 +185,8 @@ class GridBoard (Board):
         for space in self:
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
-        return (board, stones)
+        scores = self.get_scores()
+        return (board, stones, scores)
 
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":
@@ -393,10 +394,10 @@ if __name__ == '__main__':
                 print(e)
                 game = game.create_replay()
 
-        elif re.match("\s*$", move):
+        elif re.match("\s*$", move_input):
             move = None
             game.move(move)
-        elif re.match("^[Uu]", move):
+        elif re.match("^[Uu]", move_input):
             print("Undoing last move")
             game = game.create_replay()
         else:
@@ -406,7 +407,7 @@ if __name__ == '__main__':
             break
     print(game)
     print("Game is complete")
-    print(f"The final score is {game.get_scores()}")
+    print(f"The final score is {game.board.get_scores()}")
     """
     conn = psycopg2.connect("dbname='gengo'")
     conn.set_session(autocommit=True)

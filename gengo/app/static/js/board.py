@@ -10,7 +10,7 @@ board_size = None
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    board, stones = json.loads(evt.data)
+    board, stones, scores = json.loads(evt.data)
     print(board)
     print(stones)
     for x in range(board_size):
@@ -28,10 +28,8 @@ def on_message(evt):
                             cx=stone[0] * 30 + 15,
                             cy=stone[1] * 30 + 15, r="15")
         stones_div <= circle
-    ul = document["ul"]
-    for i in range(5):
-        li = document.createElement("LI")
-        ul <= li
+    document['black-score'].text = scores[0]
+    document['white-score'].text = scores[1]
 
 def on_click(ev):
     document[ev.target.id].attrs['fill'] = "black"
