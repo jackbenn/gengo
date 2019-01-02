@@ -1,0 +1,40 @@
+<html>
+    <head>
+    <script src="{{url_for('static', filename='brython/brython.js') }}"></script>
+    <script src="{{url_for('static', filename='brython/brython_stdlib.js') }}"></script>
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Home page</title>
+    {% endif %}
+    </head>
+    <body onload="brython(1)">
+        <script src="{{url_for('static', filename='js/board.py')}}"
+                type="text/python"></script>
+
+        <div id="rules" board_size={{board_size}}></div>
+        <div style="float:left">
+            <svg width="750" height="750" id="svg">
+                {% for x in range(board_size) %}
+                    {% for y in range(board_size) %}
+                        <rect id="{{'{},{}'.format(x,y)}}"
+                              x="{{x*30}}" y="{{y*30}}"
+                            height="30" width="30" fill="sandybrown"/>
+                    {% endfor %}
+                {% endfor %}
+                {% for x in range(board_size) %}
+                    <line x1="15" x2="{{30*board_size-15}}" y1="{{15+x*30}}" y2="{{15+x*30}}" stroke="red"></line>
+                    <line y1="15" y2="{{30*board_size-15}}" x1="{{15+x*30}}" x2="{{15+x*30}}" stroke="red"></line>
+                {% endfor %}
+                <g id="stones"></g>
+            </svg>
+        </div>
+        <div style="float:right">
+            <table>
+                <tr><td>Black</td><td id="black-score">0</td></tr>
+                <tr><td>White</td><td id="white-score">0</td></tr>
+            </table>
+        </div>
+    </body>
+</html>
+

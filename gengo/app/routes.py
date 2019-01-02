@@ -1,16 +1,14 @@
-from flask import render_template
+from flask import render_template, request
 from flask import Flask
 app = Flask(__name__)
 
 
 @app.route('/')
-@app.route('/index/')
+@app.route('/index')
 def index():
-    user = {'username': 'Jack'}
-    board_size = 17
-    return render_template('index.html', user=user, board_size=board_size)
+    return render_template('index.html')
 
-
-@app.route('/game/')
+@app.route('/game', methods=['GET'])
 def game():
-    return render_template('index.html', user=user)
+    board_size = int(request.args.get('size'))
+    return render_template('game.html', board_size=board_size)
