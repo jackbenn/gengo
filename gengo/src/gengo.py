@@ -165,6 +165,17 @@ class GridBoard (Board):
                 scores[space.stone.owner.index] += 1
         return tuple(scores)
 
+    def find_neighbor_stones(self):
+        neighbor_pairs = [[], []]
+        for a in self:
+            if a.stone is not None:
+                for b in a.neighbor:
+                    if b.stone is not None:
+                        if a.stone.owner == b.stone.owner and a.coord > b.coord:
+                            neighbor_pairs[a.stone.owner.index].append((a.coord,
+                                                                        b.coord))
+        return neighbor_pairs
+
     def colors(self) -> Tuple[List[List[str]], List[Tuple[int, int]], Tuple[int, int]]:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
@@ -186,7 +197,8 @@ class GridBoard (Board):
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
         scores = self.get_scores()
-        return (board, stones, scores)
+        pairs = self.find_neighbor_stones()
+        return (board, stones, scores, pairs)
 
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":

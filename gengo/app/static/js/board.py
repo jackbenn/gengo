@@ -7,27 +7,43 @@ import json
 board_size = None
 
 
+def trans(position):
+    return position * 30 + 15
+
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    board, stones, scores = json.loads(evt.data)
+    board, stones, scores, pairs = json.loads(evt.data)
     print(board)
     print(stones)
     for x in range(board_size):
         for y in range(board_size):
             document[f"{x},{y}"].attrs['fill'] = board[x][y]
     stones_div = document['stones']
+    stones_div.clear()
     blacks, whites = stones
     for stone in blacks:
         circle = svg.circle(fill="black", stroke="red",
-                            cx=stone[0] * 30 + 15,
-                            cy=stone[1] * 30 + 15, r="15")
+                            cx=trans(stone[0]),
+                            cy=trans(stone[1]), r="15")
         stones_div <= circle
     for stone in whites:
         circle = svg.circle(fill="white", stroke="red",
-                            cx=stone[0] * 30 + 15,
-                            cy=stone[1] * 30 + 15, r="15")
+                            cx=trans(stone[0]),
+                            cy=trans(stone[1]), r="15")
         stones_div <= circle
+    for pair in pairs[0]:
+        line = svg.line(stroke="black", x1=trans(pair[0][0]),
+                                        x2=trans(pair[1][0]),
+                                        y1=trans(pair[0][1]),
+                                        y2=trans(pair[1][1]))
+        stones_div <= line
+    for pair in pairs[1]:
+        line = svg.line(stroke="white", x1=trans(pair[0][0]),
+                                        x2=trans(pair[1][0]),
+                                        y1=trans(pair[0][1]),
+                                        y2=trans(pair[1][1]))
+        stones_div <= line
     document['black-score'].text = scores[0]
     document['white-score'].text = scores[1]
 
