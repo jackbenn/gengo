@@ -2,6 +2,8 @@
     <head>
     <script src="{{url_for('static', filename='brython/brython.js') }}"></script>
     <script src="{{url_for('static', filename='brython/brython_stdlib.js') }}"></script>
+    <link href="{{url_for('static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
+
     {% if title %}
     <title>{{ title }}</title>
     {% else %}
@@ -19,7 +21,7 @@
                     {% for y in range(board_size) %}
                         <rect id="{{'{},{}'.format(x,y)}}"
                               x="{{x*30}}" y="{{y*30}}"
-                            height="30" width="30" fill="sandybrown"/>
+                            height="30" width="30" class="empty"/>
                     {% endfor %}
                 {% endfor %}
                 {% for x in range(board_size) %}

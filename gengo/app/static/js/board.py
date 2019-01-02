@@ -18,17 +18,17 @@ def on_message(evt):
     print(stones)
     for x in range(board_size):
         for y in range(board_size):
-            document[f"{x},{y}"].attrs['fill'] = board[x][y]
+            document[f"{x},{y}"].attrs['class'] = board[x][y]
     stones_div = document['stones']
     stones_div.clear()
     blacks, whites = stones
     for stone in blacks:
-        circle = svg.circle(fill="black", stroke="red",
+        circle = svg.circle(fill="black",
                             cx=trans(stone[0]),
                             cy=trans(stone[1]), r="15")
         stones_div <= circle
     for stone in whites:
-        circle = svg.circle(fill="white", stroke="red",
+        circle = svg.circle(fill="white",
                             cx=trans(stone[0]),
                             cy=trans(stone[1]), r="15")
         stones_div <= circle
@@ -47,8 +47,8 @@ def on_message(evt):
     document['black-score'].text = scores[0]
     document['white-score'].text = scores[1]
 
+
 def on_click(ev):
-    document[ev.target.id].attrs['fill'] = "black"
     ws.send(ev.target.id)
 
 

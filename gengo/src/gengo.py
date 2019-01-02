@@ -188,9 +188,9 @@ class GridBoard (Board):
             for j in range(self.size):
                 space = self[i, j]
                 if space.is_empty():
-                    row.append(empty_color)
+                    row.append("empty")
                 else:
-                    row.append(overlap_color)
+                    row.append("overlap")
             board.append(row)
         stones = [[], []]
         for space in self:
