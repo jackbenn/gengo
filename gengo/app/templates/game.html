@@ -17,18 +17,24 @@
         <div id="rules" board_size={{board_size}}></div>
         <div style="float:left">
             <svg width="750" height="750" id="svg">
-                {% for x in range(board_size) %}
-                    {% for y in range(board_size) %}
-                        <rect id="{{'{},{}'.format(x,y)}}"
-                              x="{{x*30}}" y="{{y*30}}"
-                            height="30" width="30" class="empty"/>
+                <rect x="{{0}}" y="{{0}}"
+                    height="{{board_size*30 + 30}}"
+                    width="{{board_size*30 + 30}}" class="empty"/>
+
+                <g transform="translate(15,15)">
+                    {% for x in range(board_size) %}
+                        {% for y in range(board_size) %}
+                            <rect id="{{'{},{}'.format(x,y)}}"
+                                x="{{x*30}}" y="{{y*30}}"
+                                height="30" width="30" class="empty"/>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-                {% for x in range(board_size) %}
-                    <line x1="15" x2="{{30*board_size-15}}" y1="{{15+x*30}}" y2="{{15+x*30}}" stroke="red"></line>
-                    <line y1="15" y2="{{30*board_size-15}}" x1="{{15+x*30}}" x2="{{15+x*30}}" stroke="red"></line>
-                {% endfor %}
-                <g id="stones"></g>
+                    {% for x in range(board_size) %}
+                        <line x1="15" x2="{{30*board_size-15}}" y1="{{15+x*30}}" y2="{{15+x*30}}" stroke="red"></line>
+                        <line y1="15" y2="{{30*board_size-15}}" x1="{{15+x*30}}" x2="{{15+x*30}}" stroke="red"></line>
+                    {% endfor %}
+                    <g id="stones"></g>
+                </g>
             </svg>
         </div>
         <div style="float:right">
