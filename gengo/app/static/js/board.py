@@ -61,7 +61,8 @@ def on_open(evt):
         for y in range(board_size):
             ident = f"{x},{y}"
             document[ident].bind("click", on_click)
-
+    document['undo'].bind("click", on_click)
+    document['pass'].bind("click", on_click)
 
 ws = websocket.WebSocket("ws://localhost:8765")
 ws.bind('message', on_message)

@@ -30,13 +30,18 @@ async def start_game(websocket, path):
 
         move = await websocket.recv()
         print(f"< ({move})")
-        move = ast.literal_eval(move)
-
-        try:
+        if move == "pass":
+            move = None
             game.move(move)
-        except InvalidMove as e:
-            print(e)
+        elif move == "undo":
             game = game.create_replay()
+        else:
+            move = ast.literal_eval(move)
+            try:
+                game.move(move)
+            except InvalidMove as e:
+                print(e)
+                game = game.create_replay()
         print(game)
 
         response = json.dumps(game.board.colors())
