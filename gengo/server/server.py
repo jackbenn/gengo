@@ -74,15 +74,17 @@ async def run_game(game_name):
     game = Game((p1, p2), rules)
 
 async def get_connection(websocket, path):
-    game_name = await websocket.get()
+    game_name = await websocket.recv()
     if game_name not in connections:
-        task = asyncio.create_task(run_game(game_name))
+        # can shorted in python 3.7
+        task = asyncio.get_event_loop().create_task(run_game(game_name))
+        # we should probably save the tasks somewhere??
+        connections[game_name] = asyncio.Queue()
     
     await connections[game_name].put(websocket)
 
 start_server = websockets.serve(get_connection, 'localhost', 8765)
 
-coroutines = asyncio.gather(start_server, run_game())
 loop = asyncio.get_event_loop()
-loop.run_until_complete(coroutines)
+loop.run_until_complete(start_server)
 loop.run_forever()

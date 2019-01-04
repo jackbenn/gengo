@@ -56,7 +56,7 @@ def on_click(ev):
 def on_open(evt):
     global game_name
     global board_size
-    game_name = int(document.select('div#rules')[0].attrs['game_name'])
+    game_name = document.select('div#rules')[0].attrs['game_name']
     board_size = int(document.select('div#rules')[0].attrs['board_size'])
     ws.send(game_name)
     ws.send(str(board_size))
