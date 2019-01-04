@@ -9,6 +9,8 @@ import ast
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
+connections = {}
+
 async def start_game(websocket, path):
 
     board_size = int(await websocket.recv())
@@ -49,8 +51,38 @@ async def start_game(websocket, path):
 
         await websocket.send(response)
 
+async def run_game(game_name):
+    print("Waiting for first connection")
+    websocket1 = await connections[game_name].get()
+    print(websocket1)
+    print("Waiting for second connection")
+    websocket2 = await connections[game_name].get()
+    print(websocket2)
+    print("Got both connections")
 
-start_server = websockets.serve(start_game, 'localhost', 8765)
+    board_size = int(await websocket1.recv())
 
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+    print(f"creating a board of size {board_size}")
+
+    rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
+                  [(2, 0), (0, 2), (2, 1), (1, 2)],
+                  board_size)
+
+    p1 = Player("X", "X", "black", 1)
+    p2 = Player("O", "O", "white", 2)
+
+    game = Game((p1, p2), rules)
+
+async def get_connection(websocket, path):
+    game_name = await websocket.get()
+    if game_name not in connections:
+        task = asyncio.create_task(run_game(game_name))
+    
+    await connections[game_name].put(websocket)
+
+start_server = websockets.serve(get_connection, 'localhost', 8765)
+
+coroutines = asyncio.gather(start_server, run_game())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(coroutines)
+loop.run_forever()
