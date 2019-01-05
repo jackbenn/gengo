@@ -7,6 +7,10 @@ import json
 game_name = None
 board_size = None
 
+import logging
+logger = logging.getLogger('websocket')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 def trans(position):
     return position * 30 + 15
@@ -54,6 +58,7 @@ def on_click(ev):
 
 
 def on_open(evt):
+    print("Opened connection; creating initial board")
     global game_name
     global board_size
     game_name = document.select('div#rules')[0].attrs['game_name']
@@ -61,13 +66,17 @@ def on_open(evt):
     ws.send(game_name)
     ws.send(str(board_size))
 
+    print("Binding events to board squares and buttons")
     for x in range(board_size):
         for y in range(board_size):
             ident = f"{x},{y}"
             document[ident].bind("click", on_click)
     document['undo'].bind("click", on_click)
     document['pass'].bind("click", on_click)
+    print("Binding complete")
 
 ws = websocket.WebSocket("ws://localhost:8765")
-ws.bind('message', on_message)
 ws.bind('open', on_open)
+ws.bind('message', on_message)
+print("Bound message/open functions to websocket")
+print(ws)
