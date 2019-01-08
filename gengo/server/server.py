@@ -116,7 +116,8 @@ async def run_game(game_name):
             print(f">json ({response})")
 
             await websocket.send(response)
-
+        print("DONE WITH ONE ROUND")
+    print("DONE WITH INFINITE LOOP")
 
 async def get_connection(websocket, path):
     game_name = await websocket.recv()
@@ -137,7 +138,9 @@ async def get_connection(websocket, path):
         print("awaiting 2nd put")
         await connections[game_name].put(websocket)
         print("done with 2nd put")
-        #await task
+    while True:
+        print("sleeping a little in connection")
+        await asyncio.sleep(10)
 
 start_server = websockets.serve(get_connection, 'localhost', 8765)
 
