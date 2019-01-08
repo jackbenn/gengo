@@ -6,11 +6,7 @@ from browser.html import LI
 import json
 game_name = None
 board_size = None
-
-import logging
-logger = logging.getLogger('websocket')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+is_my_turn = None
 
 def trans(position):
     return position * 30 + 15
@@ -18,9 +14,9 @@ def trans(position):
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    board, stones, scores, pairs = json.loads(evt.data)
-    print(board)
-    print(stones)
+    global is_my_turn
+    board, stones, scores, pairs, is_my_turn = json.loads(evt.data)
+
     for x in range(board_size):
         for y in range(board_size):
             document[f"{x},{y}"].attrs['class'] = board[x][y]
@@ -54,7 +50,10 @@ def on_message(evt):
 
 
 def on_click(ev):
-    ws.send(ev.target.id)
+    global is_my_turn
+    if is_my_turn:
+        ws.send(ev.target.id)
+        is_my_turn = False
 
 
 def on_open(evt):
