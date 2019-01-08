@@ -1,6 +1,8 @@
 # Gengo
 
-Python application to run a generalized version of go, in which a stone extends across multiple spaces.
+The is a python application/web server that runs a generalized version of go in which a stone extends across multiple spaces. Here's an example a 23x23 board from near the end of the game.
+
+![Sample Game](img/sample_game.png)
 
 ## Rules
 
@@ -29,6 +31,7 @@ export FLASK_APP=routes.py
 export FLASK_ENV=development
 flask run
 ```
+This starts a server on port 5000. Point a browser to http://localhost:5000 and enter the name of the game and the board size; that plays black. Point a second browser to the same location and enter the same name and size; that plays white.
 
 To run tests, do `pytest` from this directory.
 
