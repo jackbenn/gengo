@@ -3,6 +3,7 @@ import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional
 import ast
+import numpy as np
 
 
 class InvalidMove(Exception):
@@ -164,6 +165,58 @@ class GridBoard (Board):
             if space.stone is not None:
                 scores[space.stone.owner.index] += 1
         return tuple(scores)
+
+    def get_adjacent(self, coord: Tuple[int, int]):
+        """return four adjacent locations to a tuple (fewer if on edge)"""
+        i, j = coord
+        result = []
+        if i != 0:
+            result.append((i-1, j))
+        if i != self.size-1:
+            result.append((i+1, j))
+        if j != 0:
+            result.append((i, j-1))
+        if j != self.size-1:
+            result.append((i, j+1))
+        return result
+
+    def area_scores(self):
+        # calculate ownership of each space.
+        # first, label spaces that are part of an overlap based n the owner.
+        # label 2 if overlapped by both, -1 if by neither
+        ownership = -np.ones((self.size, self.size))
+        for space in self:
+            if space.stone is not None:
+                for overlap in space.overlap:
+                    if ownership[overlap.coord] == -1:
+                        ownership[overlap.coord] = space.stone.owner.index
+                    elif ownership[overlap.coord] != space.stone.owner.index:
+                        # it's overlapped by both players
+                        ownership[overlap.coord] = 2
+        for i in range(self.size):
+            for j in range(self.size):
+                if ownership[i, j] == -1:
+                    # it's unassigned. Do a breadth-first search
+                    # of unassigned adjacent points.
+                    # to start, it's surrounded by nothing
+                    surrounded_by = -1
+                    visited = set()
+                    queue = [(i, j)]
+                    while len(queue):
+                        current = queue.pop(0)
+                        if ownership[current] == -1:
+                            visited.add(current)
+                            queue.extend(self.get_adjacent(current))
+                        elif surrounded_by == -1:
+                            surrounded_by = ownership[current]
+                        elif surrounded_by != ownership[current]:
+                            # it's surrounded by both colors.
+                            # no need to search more
+                            surrounded_by = 2
+                            break
+                        for coord in visited:
+                            ownership[coord] = surrounded_by
+        return [(ownership==x).sum() for x in [0, 1, -1, 2]]
 
     def find_neighbor_stones(self):
         neighbor_pairs = [[], []]
