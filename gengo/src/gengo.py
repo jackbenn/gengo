@@ -159,7 +159,7 @@ class GridBoard (Board):
             for i1 in range(self.size):
                 yield self[i0, i1]
 
-    def get_scores(self) -> Tuple[int, ...]:
+    def stone_scores(self) -> Tuple[int, ...]:
         scores = [0, 0]
         for space in self:
             if space.stone is not None:
@@ -204,19 +204,24 @@ class GridBoard (Board):
                     queue = [(i, j)]
                     while len(queue):
                         current = queue.pop(0)
-                        if ownership[current] == -1:
-                            visited.add(current)
-                            queue.extend(self.get_adjacent(current))
-                        elif surrounded_by == -1:
-                            surrounded_by = ownership[current]
-                        elif surrounded_by != ownership[current]:
-                            # it's surrounded by both colors.
-                            # no need to search more
-                            surrounded_by = 2
-                            break
-                        for coord in visited:
-                            ownership[coord] = surrounded_by
-        return [(ownership==x).sum() for x in [0, 1, -1, 2]]
+                        if current not in visited:
+                            if ownership[current] == -1:
+                                visited.add(current)
+                                queue.extend(self.get_adjacent(current))
+                            elif surrounded_by == -1:
+                                surrounded_by = ownership[current]
+                            elif surrounded_by != ownership[current]:
+                                # it's surrounded by both colors.
+                                # no need to search more
+                                surrounded_by = 2
+                                break
+                    # if board empty, set to 2
+                    # so we don't have to calculate at each point
+                    if surrounded_by == -1:
+                        surrounded_by = 2
+                    for coord in visited:
+                        ownership[coord] = surrounded_by
+        return tuple([int((ownership==x).sum()) for x in [0, 1]])
 
     def find_neighbor_stones(self):
         neighbor_pairs = [[], []]
@@ -249,7 +254,7 @@ class GridBoard (Board):
         for space in self:
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
-        scores = self.get_scores()
+        scores = self.area_scores()
         pairs = self.find_neighbor_stones()
         return (board, stones, scores, pairs)
 
