@@ -19,7 +19,7 @@ class Rules:
     def __init__(self,
                  overlap: List[Tuple[int, int]],
                  neighbor: List[Tuple[int, int]],
-                 size: int=11) -> None:
+                 size: int = 11) -> None:
         self.size = size
         self.overlap = overlap
         self.neighbor = neighbor
@@ -31,11 +31,11 @@ class Game:
     def __init__(self,
                  players: Tuple['Player', 'Player'],
                  rules: Rules,
-                 name: str=None) -> None:
+                 name: str = None) -> None:
         self.players = players
         self.players[0].index = 0
         self.players[1].index = 1
-        self.moves = []  # type: List[Tuple[int, int]]
+        self.moves = []  # type: List[Optional[Tuple[int, int]]]
         self.board = GridBoard(rules)
         self.rules = rules
         self.next_player = 0
@@ -180,7 +180,7 @@ class GridBoard (Board):
             result.append((i, j+1))
         return result
 
-    def area_scores(self):
+    def area_scores(self) -> Tuple[int, int]:
         # calculate ownership of each space.
         # first, label spaces that are part of an overlap based n the owner.
         # label 2 if overlapped by both, -1 if by neither
@@ -200,7 +200,7 @@ class GridBoard (Board):
                     # of unassigned adjacent points.
                     # to start, it's surrounded by nothing
                     surrounded_by = -1
-                    visited = set()
+                    visited = set()  # type: Set[Tuple[int, int]]
                     queue = [(i, j)]
                     while len(queue):
                         current = queue.pop(0)
@@ -221,25 +221,32 @@ class GridBoard (Board):
                         surrounded_by = 2
                     for coord in visited:
                         ownership[coord] = surrounded_by
-        return tuple([int((ownership==x).sum()) for x in [0, 1]])
 
-    def find_neighbor_stones(self):
-        neighbor_pairs = [[], []]
+        result0 = int((ownership == 0).sum())
+        result1 = int((ownership == 1).sum())
+        return (result0, result1)
+
+    def find_neighbor_stones(self) -> List[List[Tuple[int, int]]]:
+        neighbor_pairs = [[], []]  # type: List[List[Tuple[int, int]]]
         for a in self:
             if a.stone is not None:
                 for b in a.neighbor:
-                    if b.stone is not None:
-                        if a.stone.owner == b.stone.owner and a.coord > b.coord:
-                            neighbor_pairs[a.stone.owner.index].append((a.coord,
-                                                                        b.coord))
+                    if (b.stone is not None and
+                       a.stone.owner == b.stone.owner and
+                       a.coord > b.coord):
+                        neighbor_pairs[a.stone.owner.index].append((a.coord,
+                                                                    b.coord))
         return neighbor_pairs
 
-    def colors(self) -> Tuple[List[List[str]], List[Tuple[int, int]], Tuple[int, int]]:
+    def colors(self) -> Tuple[List[List[str]],
+                              List[List[Tuple[int, int]]],
+                              Tuple[int, int],
+                              List[List[Tuple[int, int]]]]:
         '''Return list of lists of colors to paint on the server.
         This will be replaced by...something else'''
         empty_color = 'sandybrown'  # type:str
         overlap_color = 'grey'  # type: str
-        board = []
+        board = []  # type: List[List[str]]
 
         for i in range(self.size):
             row = []
@@ -250,7 +257,7 @@ class GridBoard (Board):
                 else:
                     row.append("overlap")
             board.append(row)
-        stones = [[], []]
+        stones = [[], []]  # type: List[List[Tuple[int, int]]]
         for space in self:
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
@@ -293,11 +300,11 @@ class Space:
         self.liberty_of = set()  # groups of which this is a liberty
         self.coord = None  # type: Optional[Tuple[Int, Int]]
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         '''does it not overlap with a stone?'''
         return self.overlapcount == 0
 
-    def play(self, player, game):
+    def play(self, player: Player, game: Game) -> None:
         if not self.is_empty():
             raise InvalidMove("Moved inside overlap")
 
@@ -375,12 +382,12 @@ class Space:
 
 
 class Stone:
-    def __init__(self, owner, location):
+    def __init__(self, owner: Player, location: Space):
         self.owner = owner
         self.location = location  # the space it's at
         self.group = Group(self)
 
-    def die(self):
+    def die(self) -> None:
         '''
         kill a stone in a group, adding liberties to other groups as needed
         '''
@@ -425,7 +432,7 @@ class Group:
         del self
 
     # combing with another group
-    def merge(self, other):
+    def merge(self, other: Group) -> None:
         print("Merging ", self.count, " with group ", other.count)
         assert(self != other)
         for stone in other.stones:
@@ -456,7 +463,7 @@ if __name__ == '__main__':
     while (True):
         print(game)
         move_input = input()
-        if re.match("^\s*\d+\s*,\s*\d+\s*$", move_input):
+        if re.match(r"^\s*\d+\s*,\s*\d+\s*$", move_input):
             move = ast.literal_eval(move_input)
             try:
                 game.move(move)
@@ -464,7 +471,7 @@ if __name__ == '__main__':
                 print(e)
                 game = game.create_replay()
 
-        elif re.match("\s*$", move_input):
+        elif re.match(r"\s*$", move_input):
             move = None
             game.move(move)
         elif re.match("^[Uu]", move_input):
@@ -477,7 +484,7 @@ if __name__ == '__main__':
             break
     print(game)
     print("Game is complete")
-    print(f"The final score is {game.board.get_scores()}")
+    print(f"The final score is {game.board.area_scores()}")
     """
     conn = psycopg2.connect("dbname='gengo'")
     conn.set_session(autocommit=True)

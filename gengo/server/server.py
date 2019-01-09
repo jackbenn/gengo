@@ -11,6 +11,7 @@ from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
 connections = {}
 
+
 async def run_game(game_name):
     print("Waiting for first connection")
     websocket1 = await connections[game_name].get()
@@ -70,6 +71,7 @@ async def run_game(game_name):
 
             await websocket.send(response)
 
+
 async def get_connection(websocket, path):
     game_name = await websocket.recv()
     if game_name not in connections:
@@ -77,7 +79,7 @@ async def get_connection(websocket, path):
         task = asyncio.get_event_loop().create_task(run_game(game_name))
         # we should probably save the tasks somewhere??
         connections[game_name] = asyncio.Queue()
-    
+
         await connections[game_name].put(websocket)
         await task
     else:

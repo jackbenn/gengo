@@ -2,14 +2,16 @@ from browser import document, alert, svg
 from browser import websocket
 import browser
 from browser.html import LI
- 
+
 import json
 game_name = None
 board_size = None
 is_my_turn = None
 
+
 def trans(position):
     return position * 30 + 15
+
 
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
@@ -34,16 +36,18 @@ def on_message(evt):
                             cy=trans(stone[1]), r="15")
         stones_div <= circle
     for pair in pairs[0]:
-        line = svg.line(stroke="black", x1=trans(pair[0][0]),
-                                        x2=trans(pair[1][0]),
-                                        y1=trans(pair[0][1]),
-                                        y2=trans(pair[1][1]))
+        line = svg.line(stroke="black",
+                        x1=trans(pair[0][0]),
+                        x2=trans(pair[1][0]),
+                        y1=trans(pair[0][1]),
+                        y2=trans(pair[1][1]))
         stones_div <= line
     for pair in pairs[1]:
-        line = svg.line(stroke="white", x1=trans(pair[0][0]),
-                                        x2=trans(pair[1][0]),
-                                        y1=trans(pair[0][1]),
-                                        y2=trans(pair[1][1]))
+        line = svg.line(stroke="white",
+                        x1=trans(pair[0][0]),
+                        x2=trans(pair[1][0]),
+                        y1=trans(pair[0][1]),
+                        y2=trans(pair[1][1]))
         stones_div <= line
     document['black-score'].text = scores[0]
     document['white-score'].text = scores[1]
@@ -73,6 +77,7 @@ def on_open(evt):
     document['undo'].bind("click", on_click)
     document['pass'].bind("click", on_click)
     print("Binding complete")
+
 
 ws = websocket.WebSocket("ws://localhost:8765")
 ws.bind('open', on_open)
