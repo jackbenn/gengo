@@ -73,20 +73,26 @@ async def run_game(game_name):
 
 
 async def get_connection(websocket, path):
-    game_name = await websocket.recv()
-    if game_name not in connections:
-        # can shorted in python 3.7
-        task = asyncio.get_event_loop().create_task(run_game(game_name))
-        # we should probably save the tasks somewhere??
-        connections[game_name] = asyncio.Queue()
+    action = await websocket.recv()
 
-        await connections[game_name].put(websocket)
-        await task
-    else:
-        await connections[game_name].put(websocket)
-    while True:
-        print("sleeping a little in connection")
-        await asyncio.sleep(60)
+    if action == "list games":
+        await websocket.send(list(connections))
+
+    if action == "new game":
+        game_name = await websocket.recv()
+        if game_name not in connections:
+            # can shorted in python 3.7
+            task = asyncio.get_event_loop().create_task(run_game(game_name))
+            # we should probably save the tasks somewhere??
+            connections[game_name] = asyncio.Queue()
+
+            await connections[game_name].put(websocket)
+            await task
+        else:
+            await connections[game_name].put(websocket)
+        while True:
+            print("sleeping a little in connection")
+            await asyncio.sleep(60)
 
 start_server = websockets.serve(get_connection, 'localhost', 8765)
 

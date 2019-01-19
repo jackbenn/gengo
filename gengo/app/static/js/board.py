@@ -1,7 +1,6 @@
 from browser import document, alert, svg
 from browser import websocket
 import browser
-from browser.html import LI
 
 import json
 game_name = None
@@ -66,6 +65,7 @@ def on_open(evt):
     global board_size
     game_name = document.select('div#rules')[0].attrs['game_name']
     board_size = int(document.select('div#rules')[0].attrs['board_size'])
+    ws.send("new game")
     ws.send(game_name)
     ws.send(str(board_size))
 
