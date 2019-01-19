@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-
-# WS server example
-
 import asyncio
 import websockets
 import json
 import ast
+import logging
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
@@ -13,17 +11,15 @@ connections = {}
 
 
 async def run_game(game_name):
-    print("Waiting for first connection")
+    logging.info("Waiting for first connection")
     websocket1 = await connections[game_name].get()
-    print(websocket1)
-    print("Waiting for second connection")
+    logging.info("Waiting for second connection")
     websocket2 = await connections[game_name].get()
-    print(websocket2)
-    print("Got both connections")
+    logging.info("Got both connections")
 
     board_size = int(await websocket1.recv())
 
-    print(f"creating a board of size {board_size}")
+    logging.info(f"creating a board of size {board_size}")
 
     # this should be the same.
     connection2_board_size = int(await websocket2.recv())
@@ -44,12 +40,12 @@ async def run_game(game_name):
             # first, send the current board,
             # plus that it's your turn
             response = json.dumps(game.board.colors() + (True,))
-            print(f">json ({response})")
+            logging.info(f">json ({response})")
             await websocket.send(response)
 
             # second, wait for a move
             move = await websocket.recv()
-            print(f"< ({move})")
+            logging.info(f"< ({move})")
             if move == "pass":
                 move = None
                 game.move(move)
@@ -60,14 +56,14 @@ async def run_game(game_name):
                 try:
                     game.move(move)
                 except InvalidMove as e:
-                    print(e)
+                    logging.warning(e)
                     game = game.create_replay()
-            print(game)
+            logging.info(game)
 
             # third, send the results of the move,
             # plus that it's not your turn anymore
             response = json.dumps(game.board.colors() + (False,))
-            print(f">json ({response})")
+            logging.info(f">json ({response})")
 
             await websocket.send(response)
 
@@ -91,7 +87,7 @@ async def get_connection(websocket, path):
         else:
             await connections[game_name].put(websocket)
         while True:
-            print("sleeping a little in connection")
+            logging.info("sleeping a little in connection")
             await asyncio.sleep(60)
 
 start_server = websockets.serve(get_connection, 'localhost', 8765)

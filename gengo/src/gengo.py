@@ -5,6 +5,7 @@ import re
 from typing import Set, Tuple, Sequence, List, Optional
 import ast
 import numpy as np
+import logging
 
 
 class InvalidMove(Exception):
@@ -50,12 +51,12 @@ class Game:
 
     def move(self, location: Optional[Tuple[int, int]]) -> None:
         self.moves.append(location)
-        print(self.moves)
+        logging.info(f"Move at {self.moves}")
         if location is None:
             # check if it's the third pass
-            if (len(self.moves) > 1 and
-               self.moves[-1] is None and
-               self.moves[-2] is None):
+            if (len(self.moves) > 2 and
+               self.moves[-2] is None and
+               self.moves[-3] is None):
                 self.is_done = True
         else:
             self.board[location].play(self.players[self.next_player], self)
@@ -328,7 +329,7 @@ class Space:
             # find neighboring opponent's groups
             for group in space.liberty_of:
                 group.liberties.remove(space)
-                print("removed liberty {}; remaining: {} from group {}".format(
+                logging.info("removed liberty {}; remaining: {} from group {}".format(
                       space.coord,
                       len(group.liberties),
                       group.count))
@@ -392,19 +393,19 @@ class Stone:
         '''
         kill a stone in a group, adding liberties to other groups as needed
         '''
-        print("The stone died.")
+        logging.info("The stone died.")
         self.location.stone = None
         for space in self.location.overlap:
             space.overlapcount -= 1
             # add as liberty to other groups
             if space.is_empty():
-                print("Freed a space to be a liberty...")
+                logging.info("Freed a space to be a liberty...")
                 for neighbor in space.neighbor:
                     if (neighbor.stone is not None and
                        neighbor.stone.group != self.group):
                         space.liberty_of.add(neighbor.stone.group)
                         neighbor.stone.group.liberties.add(space)
-                        print("  ...bring group {} to {}".format(
+                        logging.info("  ...bring group {} to {}".format(
                             neighbor.stone.group.count,
                             len(neighbor.stone.group.liberties)))
 
@@ -422,10 +423,10 @@ class Group:
             if space.is_empty():
                 self.liberties.add(space)
                 space.liberty_of.add(self)
-        print("New group liberties: ", len(self.liberties))
+        logging.info("New group liberties: ", len(self.liberties))
 
     def die(self) -> None:
-        print("The group died.")
+        logging.info("The group died.")
         for stone in self.stones:
             stone.die()
         self.stones.clear()
@@ -433,22 +434,22 @@ class Group:
         del self
 
     # combing with another group
-    def merge(self, other: Group) -> None:
-        print("Merging ", self.count, " with group ", other.count)
+    def merge(self, other: "Group") -> None:
+        logging.info(f"Merging {self.count} with group {other.count}")
         assert(self != other)
         for stone in other.stones:
-            print("moving stone at ", stone.location.coord)
+            logging.info(f"moving stone at {stone.location.coord} between groups")
             self.stones.append(stone)
             stone.group = self
         other.stones.clear()
         for space in other.liberties:
-            print("moving liberty at ", space.coord)
+            logging.info(f"moving liberty at {space.coord} between groups")
             self.liberties.add(space)
             space.liberty_of.remove(other)
             space.liberty_of.add(self)
         other.liberties.clear()
         del other
-        print("Liberties in merged group: ", len(self.liberties))
+        logging.info(f"Liberties in merged group: {len(self.liberties)}")
 
 
 if __name__ == '__main__':
@@ -484,7 +485,7 @@ if __name__ == '__main__':
         if game.is_done:
             break
     print(game)
-    print("Game is complete")
+    logging.info(f"The game is complete")
     print(f"The final score is {game.board.area_scores()}")
     """
     conn = psycopg2.connect("dbname='gengo'")
