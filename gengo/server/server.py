@@ -70,9 +70,12 @@ async def run_game(game_name):
 
 async def get_connection(websocket, path):
     action = await websocket.recv()
-
+    print(action)
     if action == "list games":
-        await websocket.send(list(connections))
+        games = json.dumps(list(connections))
+        logging.info(games)
+        print("games: ", games)
+        await websocket.send(games)
 
     if action == "new game":
         game_name = await websocket.recv()
@@ -84,6 +87,17 @@ async def get_connection(websocket, path):
 
             await connections[game_name].put(websocket)
             await task
+        else:
+            # give some sort of error
+            pass
+        while True:
+            logging.info("sleeping a little in connection")
+            await asyncio.sleep(60)
+    elif action == "join game":
+        game_name = await websocket.recv()
+        if game_name not in connections:
+            # give some sort of error
+            pass
         else:
             await connections[game_name].put(websocket)
         while True:
