@@ -5,9 +5,9 @@ app = Flask(__name__)
 
 
 @app.route('/')
-@app.route('/index')
+@app.route('/new')
 def index():
-    return render_template('index.html')
+    return render_template('new.html')
 
 
 @app.route('/join', methods=['GET'])

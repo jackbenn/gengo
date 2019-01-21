@@ -31,7 +31,7 @@ export FLASK_APP=routes.py
 export FLASK_ENV=development
 flask run
 ```
-This starts a server on port 5000. Point a browser to http://localhost:5000 and enter the name of the game and the board size; that plays black. Point a second browser to the same location and enter the same name and size; that plays white.
+This starts a server on port 5000. Point a browser to http://localhost:5000/new and enter the name of the game and the board size; that browser plays black. Point a second browser to http://localhost:5000/join and click on the appropriate game; that browser plays white.
 
 To run tests, do `pytest` from this directory.
 
