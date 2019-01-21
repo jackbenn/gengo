@@ -7,23 +7,21 @@ import logging
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
-connections = {}
+games = {}
 
 
 async def run_game(game_name):
     logging.info("Waiting for first connection")
-    websocket1 = await connections[game_name].get()
-    logging.info("Waiting for second connection")
-    websocket2 = await connections[game_name].get()
-    logging.info("Got both connections")
+    websocket1 = await games[game_name]['connections'].get()
 
     board_size = int(await websocket1.recv())
-
     logging.info(f"creating a board of size {board_size}")
+    games[game_name]['board_size'] = board_size
 
-    # this should be the same.
-    connection2_board_size = int(await websocket2.recv())
-    assert(board_size == connection2_board_size)
+    logging.info("Waiting for second connection")
+    websocket2 = await games[game_name]['connections'].get()
+    logging.info("Got both connections")
+
 
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
@@ -72,20 +70,24 @@ async def get_connection(websocket, path):
     action = await websocket.recv()
     print(action)
     if action == "list games":
-        games = json.dumps(list(connections))
-        logging.info(games)
-        print("games: ", games)
-        await websocket.send(games)
+        games_data = []
+        for game_name in games:
+            games_data.append({'game_name': game_name, 'board_size': games[game_name]['board_size']})
+        game_names = json.dumps(list(games_data))
+        logging.info(game_names)
+        print("games: ", game_names)
+        await websocket.send(game_names)
 
     if action == "new game":
         game_name = await websocket.recv()
-        if game_name not in connections:
+        if game_name not in games:
             # can shorted in python 3.7
             task = asyncio.get_event_loop().create_task(run_game(game_name))
             # we should probably save the tasks somewhere??
-            connections[game_name] = asyncio.Queue()
+            games[game_name] = {}
+            games[game_name]['connections'] = asyncio.Queue()
 
-            await connections[game_name].put(websocket)
+            await games[game_name]['connections'].put(websocket)
             await task
         else:
             # give some sort of error
@@ -95,11 +97,11 @@ async def get_connection(websocket, path):
             await asyncio.sleep(60)
     elif action == "join game":
         game_name = await websocket.recv()
-        if game_name not in connections:
+        if game_name not in games:
             # give some sort of error
             pass
         else:
-            await connections[game_name].put(websocket)
+            await games[game_name]['connections'].put(websocket)
         while True:
             logging.info("sleeping a little in connection")
             await asyncio.sleep(60)

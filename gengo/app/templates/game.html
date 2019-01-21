@@ -4,11 +4,8 @@
     <script src="{{url_for('static', filename='brython/brython_stdlib.js') }}"></script>
     <link href="{{url_for('static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
 
-    {% if title %}
-    <title>{{ title }}</title>
-    {% else %}
+    <title>Gengo</title>
     <title>Home page</title>
-    {% endif %}
     </head>
     <body onload="brython(1)">
         <script src="{{url_for('static', filename='js/board.py')}}"
