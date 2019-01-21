@@ -7,6 +7,8 @@ import logging
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
+logging.basicConfig(level=logging.DEBUG)
+
 games = {}
 
 

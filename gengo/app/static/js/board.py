@@ -64,11 +64,20 @@ def on_open(evt):
     logging.info("Opened connection; creating initial board")
     global game_name
     global board_size
-    game_name = document.select('div#rules')[0].attrs['game_name']
-    board_size = int(document.select('div#rules')[0].attrs['board_size'])
-    ws.send("new game")
-    ws.send(game_name)
-    ws.send(str(board_size))
+    div_rules = document.select('div#rules')[0]
+    game_name = div_rules.attrs['game_name']
+    board_size = int(div_rules.attrs['board_size'])
+    action = div_rules.attrs['action']
+    print("action = ", action)
+    if action == "new":
+        ws.send("new game")
+        ws.send(game_name)
+        ws.send(str(board_size))
+    elif action == "join":
+        ws.send("join game")
+        ws.send(game_name)
+    else:
+        logging.error(f"Invalid action {action}")
 
     logging.debug("Binding events to board squares and buttons")
     for x in range(board_size):

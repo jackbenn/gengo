@@ -19,6 +19,8 @@ def join():
 def game():
     game_name = request.args.get('game_name')
     board_size = int(request.args.get('board_size'))
+    action = request.args.get('action')
     return render_template('game.html',
                            game_name=game_name,
-                           board_size=board_size)
+                           board_size=board_size,
+                           action=action)
