@@ -26,6 +26,7 @@ class Rules:
         self.overlap = overlap
         self.neighbor = neighbor
         self.no_capture_back_ko = True
+        self.no_suicide = False
 
 
 class Game:
@@ -371,6 +372,8 @@ class Space:
             if group.owner == player:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
+        if game.rules.no_suicide and moribund_groups:
+            raise InvalidMove("Suicides are not allowed.")
         # if there were suicides, it won't lead to a ko
         if game.rules.no_capture_back_ko:
             if len(moribund_groups):

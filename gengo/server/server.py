@@ -34,38 +34,44 @@ async def run_game(game_name):
 
     game = Game((p1, p2), rules)
 
+    websockets = [websocket1, websocket2]
+    websocket_idx = 0  # we'll switch back and forth each turn, mostly
     while True:
+        websocket = websockets[websocket_idx]
+        same_player = False  # the next player is usually the other one
 
-        for websocket in [websocket1, websocket2]:
-            # first, send the current board,
-            # plus that it's your turn
-            response = json.dumps(game.board.colors() + (True,))
-            logging.info(f">json ({response})")
-            await websocket.send(response)
+        # first, send the current board,
+        # plus that it's your turn
+        response = json.dumps(game.board.colors() + (True,))
+        logging.info(f">json ({response})")
+        await websocket.send(response)
 
-            # second, wait for a move
-            move = await websocket.recv()
-            logging.info(f"< ({move})")
-            if move == "pass":
-                move = None
+        # second, wait for a move
+        move = await websocket.recv()
+        logging.info(f"< ({move})")
+        if move == "pass":
+            move = None
+            game.move(move)
+        elif move == "undo":
+            game = game.create_replay()
+        else:
+            move = ast.literal_eval(move)
+            try:
                 game.move(move)
-            elif move == "undo":
+            except InvalidMove as e:
+                logging.warning(e)
                 game = game.create_replay()
-            else:
-                move = ast.literal_eval(move)
-                try:
-                    game.move(move)
-                except InvalidMove as e:
-                    logging.warning(e)
-                    game = game.create_replay()
-            logging.info(game)
+                same_player = True
+        logging.info(game)
 
-            # third, send the results of the move,
-            # plus that it's not your turn anymore
-            response = json.dumps(game.board.colors() + (False,))
-            logging.info(f">json ({response})")
+        # third, send the results of the move,
+        # plus that it's not your turn anymore
+        response = json.dumps(game.board.colors() + (same_player,))
+        logging.info(f">json ({response})")
 
-            await websocket.send(response)
+        await websocket.send(response)
+        if not same_player:
+            websocket_idx = 1 - websocket_idx
 
 
 async def get_connection(websocket, path):
