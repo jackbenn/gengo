@@ -21,12 +21,22 @@ class Rules:
     def __init__(self,
                  overlap: List[Tuple[int, int]],
                  neighbor: List[Tuple[int, int]],
-                 size: int = 11) -> None:
+                 size: int = 11,
+                 no_capture_back_ko: bool = True,
+                 no_suicide: bool = False,
+                 handicap: int = 1) -> None:
+        """
+        size: board size
+        no_capture_back_ko: should single-stone capture-backs be illegal (a ko-rule variant)
+        no_suicide: should suicide be illegal?
+        handicap: number of moves the black plays at the beginning of the game
+        """
         self.size = size
         self.overlap = overlap
         self.neighbor = neighbor
-        self.no_capture_back_ko = True
-        self.no_suicide = False
+        self.no_capture_back_ko = no_capture_back_ko
+        self.no_suicide = no_suicide
+        self.handicap = handicap
 
 
 class Game:
@@ -46,6 +56,7 @@ class Game:
         self.name = name
         self.is_done = False  # type: bool
         self.last_move_single_capture = None  # type: Optional[Stone]
+        self.extra_moves = self.rules.handicap - 1
 
     def __str__(self) -> str:
         return str(self.board)
@@ -61,7 +72,10 @@ class Game:
                 self.is_done = True
         else:
             self.board[location].play(self.players[self.next_player], self)
-        self.next_player = 1 - self.next_player
+        if self.extra_moves <= 0:
+            self.next_player = 1 - self.next_player
+        else:
+            self.extra_moves -= 1
 
     # database methods. Should separate off as ORM.
     @staticmethod
