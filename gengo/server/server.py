@@ -17,7 +17,15 @@ async def run_game(game_name):
     websocket1 = await games[game_name]['connections'].get()
 
     board_size = int(await websocket1.recv())
+    allow_suicide = (await websocket1.recv()) == "True"
+    play_black = (await websocket1.recv()) == "True"
+    handicap = await websocket1.recv()
+    handicap = int(handicap) if handicap.isdigit() else 1
+
     logging.info(f"creating a board of size {board_size}")
+    logging.info(f"allow_suicide {allow_suicide}")
+    logging.info(f"play_black {play_black}")
+    logging.info(f"handicap {handicap}")
     games[game_name]['board_size'] = board_size
 
     logging.info("Waiting for second connection")
@@ -27,7 +35,9 @@ async def run_game(game_name):
 
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
-                  board_size)
+                  size=board_size,
+                  allow_suicide=allow_suicide,
+                  handicap=handicap)
 
     p1 = Player("X", "X", "black", 1)
     p2 = Player("O", "O", "white", 2)

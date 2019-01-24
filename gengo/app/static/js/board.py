@@ -67,12 +67,19 @@ def on_open(evt):
     div_rules = document.select('div#rules')[0]
     game_name = div_rules.attrs['game_name']
     board_size = int(div_rules.attrs['board_size'])
+    allow_suicide = div_rules.attrs['allow_suicide']
+    play_black = div_rules.attrs['play_black']
+    handicap = div_rules.attrs['handicap']
     action = div_rules.attrs['action']
-    print("action = ", action)
+
+    logging.info("action = ", action)
     if action == "new":
         ws.send("new game")
         ws.send(game_name)
         ws.send(str(board_size))
+        ws.send(allow_suicide)
+        ws.send(play_black)
+        ws.send(handicap)
     elif action == "join":
         ws.send("join game")
         ws.send(game_name)

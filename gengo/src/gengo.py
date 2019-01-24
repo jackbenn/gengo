@@ -23,19 +23,19 @@ class Rules:
                  neighbor: List[Tuple[int, int]],
                  size: int = 11,
                  no_capture_back_ko: bool = True,
-                 no_suicide: bool = False,
+                 allow_suicide: bool = True,
                  handicap: int = 1) -> None:
         """
         size: board size
         no_capture_back_ko: should single-stone capture-backs be illegal (a ko-rule variant)
-        no_suicide: should suicide be illegal?
+        allow_suicide: should suicide be illegal?
         handicap: number of moves the black plays at the beginning of the game
         """
         self.size = size
         self.overlap = overlap
         self.neighbor = neighbor
         self.no_capture_back_ko = no_capture_back_ko
-        self.no_suicide = no_suicide
+        self.allow_suicide = allow_suicide
         self.handicap = handicap
 
 
@@ -386,7 +386,7 @@ class Space:
             if group.owner == player:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
-        if game.rules.no_suicide and moribund_groups:
+        if not game.rules.allow_suicide and moribund_groups:
             raise InvalidMove("Suicides are not allowed.")
         # if there were suicides, it won't lead to a ko
         if game.rules.no_capture_back_ko:
