@@ -44,7 +44,11 @@ async def run_game(game_name):
 
     game = Game((p1, p2), rules)
 
-    websockets = [websocket1, websocket2]
+    if play_black:
+        websockets = [websocket1, websocket2]
+    else:
+        websockets = [websocket2, websocket1]
+    
     while True:
         this_player = game.next_player
         websocket = websockets[this_player]

@@ -18,7 +18,7 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 
 ## Rules
 
-1. **Overview.** Gengo is played with two players. Players alternate plays, which consist of either placing *stones* on *spaces* in a square grid, or passing. Once a stone is placed it can never be moved but it can be captured and removed from the board.
+1. **Overview.** Gengo is played with two players playing black and white. Players alternate plays (starting with black) which consist of either placing *stones* on *spaces* in a square grid, or passing. Once a stone is placed it can never be moved but it can be captured and removed from the board.
 
 2. **Valid plays.** A stone can be placed in any space that is not in the *overlap region* of another stone (exception: see ko, below).
 
@@ -33,6 +33,8 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 7. **End of game.** The game is over when there are three passes in a row.
 
 8. **Scoring.** The final score of each player is the number of their stones currently on the board. The player with the most stones is the winner. This is equivalent to the [original scoring method](https://senseis.xmp.net/?StoneScoring) in go, rarely used today.
+
+9. **Handicaps.** The game may be played a **handicap** of two or more stones. If so, the starting (black) player may make that many plays at the begining of the game before the white player plays.
 
 ## Rule Questions
 
