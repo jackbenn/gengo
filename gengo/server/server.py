@@ -21,6 +21,16 @@ async def run_game(game_name):
     play_black = (await websocket1.recv()) == "True"
     handicap = await websocket1.recv()
     handicap = int(handicap) if handicap.isdigit() else 1
+    overlap = await websocket1.recv()
+    if overlap == "standard":
+        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
+                         [(2, 0), (0, 2), (2, 1), (1, 2)])
+    elif overlap == "go":
+        overlap_lists = ([(0, 0)],
+                         [(1, 0)])
+    elif overlap == "expanded":
+        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
+                         [(2, 0), (0, 2), (2, 1), (1, 2), (2,2), (3,0), (0,3), (3,1), (1,3), (3,2), (2,3)])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
@@ -32,9 +42,7 @@ async def run_game(game_name):
     websocket2 = await games[game_name]['connections'].get()
     logging.info("Got both connections")
 
-
-    rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
-                  [(2, 0), (0, 2), (2, 1), (1, 2)],
+    rules = Rules(*overlap_lists,
                   size=board_size,
                   allow_suicide=allow_suicide,
                   handicap=handicap)

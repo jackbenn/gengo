@@ -24,15 +24,21 @@ def game():
     allow_suicide = "-"
     play_black = "-"
     handicap = 1
+    overlap='standard'
 
     if action == "new":
         allow_suicide = "allow_suicide" in request.args
         play_black = "play_black" in request.args
-        handicap = int(request.args.get('handicap'))
+        try:
+            handicap = int(request.args.get('handicap'))
+        except:
+            handicap = 1
+        overlap = request.args.get('overlap')
     return render_template('game.html',
                            game_name=game_name,
                            board_size=board_size,
                            allow_suicide=allow_suicide,
                            play_black=play_black,
                            handicap=handicap,
+                           overlap=overlap,
                            action=action)

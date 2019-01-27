@@ -70,6 +70,7 @@ def on_open(evt):
     allow_suicide = div_rules.attrs['allow_suicide']
     play_black = div_rules.attrs['play_black']
     handicap = div_rules.attrs['handicap']
+    overlap = div_rules.attrs['overlap']
     action = div_rules.attrs['action']
 
     logging.info("action = ", action)
@@ -80,6 +81,7 @@ def on_open(evt):
         ws.send(allow_suicide)
         ws.send(play_black)
         ws.send(handicap)
+        ws.send(overlap)
     elif action == "join":
         ws.send("join game")
         ws.send(game_name)
