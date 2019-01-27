@@ -6,6 +6,7 @@ from typing import Set, Tuple, Sequence, List, Optional
 import ast
 import numpy as np
 import logging
+import argparse
 
 
 class InvalidMove(Exception):
@@ -469,10 +470,24 @@ class Group:
         logging.info(f"Liberties in merged group: {len(self.liberties)}")
 
 
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Play Gengo, a generalized version of go')
+
+    parser.add_argument('--no-suicide', dest='allow_suicide',
+                        action='store_false', help="Don't allow suicide/friendly fire")
+    parser.add_argument('--board-size', dest="board_size", default=19,
+                        type=int, help="Size of the board")
+    parser.add_argument('--handicap', dest="handicap", default=1,
+                        type=int, help="Number of free handicap stones for the black player")
+    args = parser.parse_args()
+    print(args)
+
     rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
                   [(2, 0), (0, 2), (2, 1), (1, 2)],
-                  11)
+                  size=vars(args)['board_size'],
+                  allow_suicide=vars(args)['allow_suicide'],
+                  handicap=vars(args)['handicap'])
 
     p1 = Player("X", "X", "black", 1)
     p2 = Player("O", "O", "white", 2)
@@ -481,6 +496,7 @@ if __name__ == '__main__':
 
     while (True):
         print(game)
+        print(f"{game.players[game.next_player].name}'s turn. Enter coodinates:  ", end="")
         move_input = input()
         if re.match(r"^\s*\d+\s*,\s*\d+\s*$", move_input):
             move = ast.literal_eval(move_input)
