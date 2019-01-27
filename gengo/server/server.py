@@ -7,7 +7,8 @@ import logging
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
-logging.basicConfig(level=logging.DEBUG)
+# for testing
+#logging.basicConfig(level=logging.DEBUG)
 
 games = {}
 
@@ -30,7 +31,7 @@ async def run_game(game_name):
                          [(1, 0)])
     elif overlap == "expanded":
         overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
-                         [(2, 0), (0, 2), (2, 1), (1, 2), (2,2), (3,0), (0,3), (3,1), (1,3), (3,2), (2,3)])
+                         [(2, 0), (0, 2), (2, 1), (1, 2), (2,2), (3,0), (0,3), (3,1), (1,3)])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")

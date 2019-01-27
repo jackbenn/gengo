@@ -279,7 +279,7 @@ class GridBoard (Board):
         for space in self:
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
-        scores = self.area_scores()
+        scores = self.stone_scores()
         pairs = self.find_neighbor_stones()
         return (board, stones, scores, pairs)
 
@@ -519,7 +519,7 @@ if __name__ == '__main__':
             break
     print(game)
     logging.info(f"The game is complete")
-    print(f"The final score is {game.board.area_scores()}")
+    print(f"The final score is {game.board.stone_scores()}")
     """
     conn = psycopg2.connect("dbname='gengo'")
     conn.set_session(autocommit=True)
