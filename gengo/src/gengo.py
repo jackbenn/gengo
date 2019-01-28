@@ -1,5 +1,6 @@
 #!python
-from __future__ import annotations
++# not quite ready for 3.7
++#from __future__ import annotations
 import psycopg2
 import re
 from typing import Set, Tuple, Sequence, List, Optional

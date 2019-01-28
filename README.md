@@ -10,29 +10,45 @@ Gengo is a generalized version of go that allows stones to be placed on a finer-
 
 ## Usage
 
+### Command-line application
+
 To run the python program, from this directory do
 
 ```
 python gengo.py
 ```
+
+Several options exists to play for rules; see `python gengo.py -h` for more information.
+
 Enter a move as a tuple of a row and a column, e.g.
 ```
 2,3
 ```
-To run server, from this directory do
+A move can be undone with `u`; no entry is a pass.
+
+### Web application
+
+To run gengo on the web, start both a game server and a web server.
+
+To start the game server, from this directory do
 ```
 python start_server.py
 ```
 
-To run web app, from the `gengo/app` directory, do
+To start the web server: from the `gengo/app` directory, do
 
 ```
 export FLASK_APP=routes.py
-export FLASK_ENV=development
-flask run
+flask run --host=0.0.0.0
 ```
-This starts a server on port 5000. Point a browser to http://localhost:5000/new and enter the name of the game and the board size; that browser plays black. Point a second browser to http://localhost:5000/join and click on the appropriate game; that browser plays white.
+
+(for a developement server, do `export FLASK_ENV=development` first).
+This starts a server on port 5000. Point a browser to http://localhost:5000/new and enter the name of the game, the board size and any other options. Point a second browser to http://localhost:5000/join and click on the appropriate game.
+
+To connect to the web server from a client on another machine, ensure the firewall allows access to ports 5000 and 8765 (for websocket connections to the game server).
+
+### Tests
 
 To run tests, do `pytest` from this directory.
 
-Note that this is still in pre-alpha and is mostly useful for understanding the game.
+Note that this is still in alpha and is mostly useful for understanding the game.
