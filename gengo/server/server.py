@@ -133,7 +133,7 @@ async def get_connection(websocket, path):
             logging.info("sleeping a little in connection")
             await asyncio.sleep(60)
 
-start_server = websockets.serve(get_connection, 'localhost', 8765)
+start_server = websockets.serve(get_connection, None, 8765)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(start_server)
