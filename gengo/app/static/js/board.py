@@ -1,5 +1,6 @@
 from browser import document, alert, svg
 from browser import websocket
+from browser import window
 import browser
 
 import json
@@ -98,7 +99,7 @@ def on_open(evt):
     logging.info("Binding complete")
 
 
-ws = websocket.WebSocket("ws://localhost:8765")
+ws = websocket.WebSocket(f"ws://{window.location.hostname}:8765")
 ws.bind('open', on_open)
 ws.bind('message', on_message)
 logging.info("Bound message/open functions to websocket")

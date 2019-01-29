@@ -1,5 +1,6 @@
 from browser import document, alert, svg
 from browser import websocket
+from browser import window
 import browser
 from browser.html import LI, A
 import logging
@@ -25,7 +26,7 @@ def on_open(evt):
     ws.send("list games")
 
 
-ws = websocket.WebSocket("ws://localhost:8765")
+ws = websocket.WebSocket(f"ws://{window.location.hostname}:8765")
 ws.bind('open', on_open)
 ws.bind('message', on_message)
 print("Bound message/open functions to websocket")
