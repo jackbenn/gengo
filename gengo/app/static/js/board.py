@@ -61,6 +61,9 @@ def on_message(evt):
     document['black-score'].text = scores[0]
     document['white-score'].text = scores[1]
 
+    if 'warning' in data:
+        alert(data['warning'])
+
 
 def on_click(ev):
     global is_my_turn

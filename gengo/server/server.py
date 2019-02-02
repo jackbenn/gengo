@@ -59,6 +59,7 @@ async def run_game(game_name):
         websockets = [websocket2, websocket1]
     
     while True:
+        warning = None
         this_player = game.next_player
         websocket = websockets[this_player]
 
@@ -84,6 +85,7 @@ async def run_game(game_name):
                 game.move(move)
             except InvalidMove as e:
                 logging.warning(e)
+                warning = e.message
                 game = game.create_replay()
         logging.info(game)
 
@@ -91,6 +93,8 @@ async def run_game(game_name):
         # plus that it's not your turn anymore
         game_data = game.board.get_game_data()
         game_data['is_my_turn'] = this_player == game.next_player
+        if warning is not None:
+            game_data['warning'] = warning
         response = json.dumps(game_data)
         logging.info(f">json ({response})")
 

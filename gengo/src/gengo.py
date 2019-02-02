@@ -11,7 +11,8 @@ import argparse
 
 
 class InvalidMove(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 
 class Rules:
@@ -332,7 +333,7 @@ class Space:
 
     def play(self, player: Player, game: Game) -> None:
         if not self.is_empty():
-            raise InvalidMove("Moved inside overlap")
+            raise InvalidMove("Can't move in overlap region")
 
         possible_ko = False
 
@@ -396,14 +397,14 @@ class Space:
                 if len(group.liberties) == 0:
                     moribund_groups.add(group)
         if not game.rules.allow_suicide and moribund_groups:
-            raise InvalidMove("Suicides are not allowed.")
+            raise InvalidMove("Suicides are not allowed")
         # if there were suicides, it won't lead to a ko
         if game.rules.no_capture_back_ko:
             if len(moribund_groups):
                 game.last_move_single_capture = None
                 possible_ko = False
         if possible_ko:
-            raise InvalidMove("Ko (captured singleton capture)")
+            raise InvalidMove("Ko violation")
 
         for group in moribund_groups:
             group.die()
