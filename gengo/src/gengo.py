@@ -257,6 +257,26 @@ class GridBoard (Board):
                                                                     b.coord))
         return neighbor_pairs
 
+    def get_board_colors(self) -> List[List[str]]:
+        '''Return list of lists of colors to paint on the server.'''
+        empty_color = 'sandybrown'  # type:str
+        overlap_color = 'grey'  # type: str
+        board = []  # type: List[List[str]]
+
+        for i in range(self.size):
+            row = []
+            for j in range(self.size):
+                space = self[i, j]
+                if space.is_empty():
+                    row.append("empty")
+                else:
+                    row.append("overlap")
+            board.append(row)
+        return board
+    
+    def get_stones(self) ->
+
+
     def colors(self) -> Tuple[List[List[str]],
                               List[List[Tuple[int, int]]],
                               Tuple[int, int],
