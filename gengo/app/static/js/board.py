@@ -9,6 +9,8 @@ game_name = None
 board_size = None
 is_my_turn = None
 
+# for testing
+#logging.basicConfig(level=logging.DEBUG)
 
 def trans(position):
     return position * 30 + 15
@@ -18,7 +20,13 @@ def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
     global is_my_turn
-    board, stones, scores, pairs, is_my_turn = json.loads(evt.data)
+    data = json.loads(evt.data)
+    logging.info(f"Got message with data {data}")
+    board = data['board']
+    stones = data['stones']
+    scores = data['scores']
+    pairs = data['pairs']
+    is_my_turn = data['is_my_turn']
 
     for x in range(board_size):
         for y in range(board_size):

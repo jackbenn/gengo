@@ -3,7 +3,7 @@
 #from __future__ import annotations
 import psycopg2
 import re
-from typing import Set, Tuple, Sequence, List, Optional
+from typing import Set, Tuple, Sequence, Dict, List, Optional
 import ast
 import numpy as np
 import logging
@@ -274,35 +274,22 @@ class GridBoard (Board):
             board.append(row)
         return board
     
-    def get_stones(self) ->
-
-
-    def colors(self) -> Tuple[List[List[str]],
-                              List[List[Tuple[int, int]]],
-                              Tuple[int, int],
-                              List[List[Tuple[int, int]]]]:
-        '''Return list of lists of colors to paint on the server.
-        This will be replaced by...something else'''
-        empty_color = 'sandybrown'  # type:str
-        overlap_color = 'grey'  # type: str
-        board = []  # type: List[List[str]]
-
-        for i in range(self.size):
-            row = []
-            for j in range(self.size):
-                space = self[i, j]
-                if space.is_empty():
-                    row.append("empty")
-                else:
-                    row.append("overlap")
-            board.append(row)
+    def get_stones_positions(self) -> List[List[Tuple[int, int]]]:
         stones = [[], []]  # type: List[List[Tuple[int, int]]]
         for space in self:
             if space.stone is not None:
                 stones[space.stone.owner.index].append(space.coord)
-        scores = self.stone_scores()
-        pairs = self.find_neighbor_stones()
-        return (board, stones, scores, pairs)
+        return stones
+
+    def get_game_data(self) -> Dict:
+        '''Return list of lists of colors to paint on the server.
+        This will be replaced by...something else'''
+        game_data = {}
+        game_data['board'] = self.get_board_colors()
+        game_data['stones'] = self.get_stones_positions()
+        game_data['scores'] = self.stone_scores()
+        game_data['pairs'] = self.find_neighbor_stones()
+        return game_data
 
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":

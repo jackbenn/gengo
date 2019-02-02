@@ -64,7 +64,9 @@ async def run_game(game_name):
 
         # first, send the current board,
         # plus that it's your turn
-        response = json.dumps(game.board.colors() + (True,))
+        game_data = game.board.get_game_data()
+        game_data['is_my_turn'] = True
+        response = json.dumps(game_data)
         logging.info(f">json ({response})")
         await websocket.send(response)
 
@@ -87,7 +89,9 @@ async def run_game(game_name):
 
         # third, send the results of the move,
         # plus that it's not your turn anymore
-        response = json.dumps(game.board.colors() + (this_player == game.next_player,))
+        game_data = game.board.get_game_data()
+        game_data['is_my_turn'] = this_player == game.next_player
+        response = json.dumps(game_data)
         logging.info(f">json ({response})")
 
         await websocket.send(response)
