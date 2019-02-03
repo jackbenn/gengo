@@ -24,7 +24,6 @@ def on_message(evt):
     logging.info(f"Got message with data {data}")
     board = data['board']
     stones = data['stones']
-    scores = data['scores']
     pairs = data['pairs']
     is_my_turn = data['is_my_turn']
 
@@ -58,11 +57,17 @@ def on_message(evt):
                         y1=trans(pair[0][1]),
                         y2=trans(pair[1][1]))
         stones_div <= line
-    document['black-score'].text = scores[0]
-    document['white-score'].text = scores[1]
+    if 'done' in data:
+        alert('Game over')
+
+        document['black-area-score'].text = data['area_scores'][0]
+        document['white-area-score'].text = data['area_scores'][1]
+        document['black-stone-score'].text = data['stone_scores'][0]
+        document['white-stone-score'].text = data['stone_scores'][1]
+        document['status'].text = "Game complete"
 
     if 'warning' in data:
-        alert(data['warning'])
+        alert('Invalid move: ' + data['warning'])
 
 
 def on_click(ev):

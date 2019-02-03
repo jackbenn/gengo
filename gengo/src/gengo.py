@@ -73,6 +73,9 @@ class Game:
                self.moves[-2] is None and
                self.moves[-3] is None):
                 self.is_done = True
+        elif location == "r":
+            # except doesn't handle ensuring the resigner lost
+            self.is_done = True
         else:
             self.board[location].play(self.players[self.next_player], self)
         if self.extra_moves <= 0:
@@ -518,6 +521,11 @@ if __name__ == '__main__':
         elif re.match(r"\s*$", move_input):
             move = None
             game.move(move)
+        elif re.match('^[Rr]', move_input):
+            verify = input("Are you sure you want to resign? [y/N]")
+            if not re.match("^[Yy]", verify):
+                continue
+            game.move("r")
         elif re.match("^[Uu]", move_input):
             print("Undoing last move")
             game = game.create_replay()

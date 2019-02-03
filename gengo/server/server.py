@@ -4,6 +4,7 @@ import websockets
 import json
 import ast
 import logging
+from typing import Dict
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
@@ -12,6 +13,14 @@ from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
 games = {}
 
+def get_game_data(board) -> Dict:
+    '''Return list of lists of colors to paint on the server.
+    This will be replaced by...something else'''
+    game_data = {}
+    game_data['board'] = board.get_board_colors()
+    game_data['stones'] = board.get_stones_positions()
+    game_data['pairs'] = board.find_neighbor_stones()
+    return game_data
 
 async def run_game(game_name):
     logging.info("Waiting for first connection")
@@ -65,7 +74,7 @@ async def run_game(game_name):
 
         # first, send the current board,
         # plus that it's your turn
-        game_data = game.board.get_game_data()
+        game_data = get_game_data(game.board)
         game_data['is_my_turn'] = True
         response = json.dumps(game_data)
         logging.info(f">json ({response})")
@@ -91,12 +100,18 @@ async def run_game(game_name):
 
         # third, send the results of the move,
         # plus that it's not your turn anymore
-        game_data = game.board.get_game_data()
+        game_data = get_game_data(game.board)
         game_data['is_my_turn'] = this_player == game.next_player
         if warning is not None:
             game_data['warning'] = warning
-        response = json.dumps(game_data)
+        if game.is_done:
+            logging.info("Game is done")
+            game_data['done'] = True
+            game_data['area_scores'] = game.board.area_scores()
+            game_data['stone_scores'] = game.board.stone_scores()
         logging.info(f">json ({response})")
+
+        response = json.dumps(game_data)
 
         await websocket.send(response)
 
