@@ -27,6 +27,11 @@ def on_message(evt):
     pairs = data['pairs']
     is_my_turn = data['is_my_turn']
 
+    if is_my_turn:
+        document['status'].text = "Click on the board to move"
+    else:
+        document['status'].text = "Waiting for opponent"
+
     for x in range(board_size):
         for y in range(board_size):
             document[f"{x},{y}"].attrs['class'] = board[x][y]
@@ -58,8 +63,6 @@ def on_message(evt):
                         y2=trans(pair[1][1]))
         stones_div <= line
     if 'done' in data:
-        alert('Game over')
-
         document['black-area-score'].text = data['area_scores'][0]
         document['white-area-score'].text = data['area_scores'][1]
         document['black-stone-score'].text = data['stone_scores'][0]
