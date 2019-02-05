@@ -38,19 +38,24 @@ async def run_game(game_name):
     elif overlap == "go":
         overlap_lists = ([(0, 0)],
                          [(1, 0)])
-    elif overlap == "expanded":
+    elif overlap == "large-n":
         overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
                          [(2, 0), (0, 2), (2, 1), (1, 2), (2,2), (3,0), (0,3), (3,1), (1,3)])
+    elif overlap == "large-o":
+        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1), (2, 0), (0, 2), (2, 1), (1, 2)],
+                         [(2,2), (3,0), (0,3), (3,1), (1,3), (3,2), (2,3)])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
     logging.info(f"play_black {play_black}")
     logging.info(f"handicap {handicap}")
     games[game_name]['board_size'] = board_size
+    games[game_name]['overlap'] = overlap
 
     logging.info("Waiting for second connection")
     websocket2 = await games[game_name]['connections'].get()
     logging.info("Got both connections")
+    games[game_name]['status'] = "started"
 
     rules = Rules(*overlap_lists,
                   size=board_size,
@@ -122,7 +127,8 @@ async def get_connection(websocket, path):
     if action == "list games":
         games_data = []
         for game_name in games:
-            games_data.append({'game_name': game_name, 'board_size': games[game_name]['board_size']})
+            if games[game_name]['status'] == 'created':
+                games_data.append({'game_name': game_name, 'board_size': games[game_name]['board_size']})
         game_names = json.dumps(list(games_data))
         logging.info(game_names)
         print("games: ", game_names)
@@ -136,6 +142,7 @@ async def get_connection(websocket, path):
             # we should probably save the tasks somewhere??
             games[game_name] = {}
             games[game_name]['connections'] = asyncio.Queue()
+            games[game_name]['status'] = 'created'
 
             await games[game_name]['connections'].put(websocket)
             await task

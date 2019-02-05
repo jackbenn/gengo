@@ -285,16 +285,6 @@ class GridBoard (Board):
                 stones[space.stone.owner.index].append(space.coord)
         return stones
 
-    def get_game_data(self) -> Dict:
-        '''Return list of lists of colors to paint on the server.
-        This will be replaced by...something else'''
-        game_data = {}
-        game_data['board'] = self.get_board_colors()
-        game_data['stones'] = self.get_stones_positions()
-        game_data['scores'] = self.stone_scores()
-        game_data['pairs'] = self.find_neighbor_stones()
-        return game_data
-
     def __getitem__(self,
                     coords: Tuple[int, int]) -> "Space":
         '''Return the Space object at the specified coordinates'''
