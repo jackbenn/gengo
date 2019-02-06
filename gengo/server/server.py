@@ -12,6 +12,7 @@ from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 #logging.basicConfig(level=logging.DEBUG)
 
 games = {}
+options = {}
 
 def get_game_data(board) -> Dict:
     '''Return list of lists of colors to paint on the server.
@@ -114,6 +115,13 @@ async def run_game(game_name):
             game_data['done'] = True
             game_data['area_scores'] = game.board.area_scores()
             game_data['stone_scores'] = game.board.stone_scores()
+            games[game_name]['status'] = 'done'
+            if options['database']:
+                import psycopg2
+                conn = psycopg2.connect("dbname='gengo'")
+                game.save(conn)
+
+
         logging.info(f">json ({response})")
 
         response = json.dumps(game_data)
@@ -163,8 +171,11 @@ async def get_connection(websocket, path):
             logging.info("sleeping a little in connection")
             await asyncio.sleep(60)
 
-start_server = websockets.serve(get_connection, None, 8765)
+def start_server(args):
+    options['database'] = args.database
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(start_server)
-loop.run_forever()
+    start_server = websockets.serve(get_connection, None, args.port)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_server)
+    loop.run_forever()

@@ -1,7 +1,6 @@
 #!python
 # not quite ready for 3.7
 #from __future__ import annotations
-import psycopg2
 import re
 from typing import Set, Tuple, Sequence, Dict, List, Optional
 import ast
@@ -492,14 +491,16 @@ if __name__ == '__main__':
                         type=int, help="Size of the board")
     parser.add_argument('--handicap', dest="handicap", default=1,
                         type=int, help="Number of free handicap stones for the black player")
+    parser.add_argument('--database', dest='database',
+                        action='store_true', help="Save games to database")
     args = parser.parse_args()
     print(args)
 
     rules = Rules([(0, 0), (1, 0), (1, 1)],
                   [(2, 0), (2, 1)],
-                  size=vars(args)['board_size'],
-                  allow_suicide=vars(args)['allow_suicide'],
-                  handicap=vars(args)['handicap'])
+                  size=args.board_size,
+                  allow_suicide=args.allow_suicide,
+                  handicap=args.handicap)
 
     p1 = Player("X", "X", "black", 1)
     p2 = Player("O", "O", "white", 2)
@@ -538,7 +539,8 @@ if __name__ == '__main__':
     logging.info(f"The game is complete")
     print(f"The final score is {game.board.stone_scores()}")
     
-    conn = psycopg2.connect("dbname='gengo'")
-    #conn.set_session(autocommit=True)
-    game.save(conn)
+    if args.database:
+        import psycopg2
+        conn = psycopg2.connect("dbname='gengo'")
+        game.save(conn)
     
