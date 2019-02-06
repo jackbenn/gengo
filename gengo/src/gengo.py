@@ -152,15 +152,17 @@ class GridBoard (Board):
                 space.coord = (i0, i1)
                 for dir in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
                     for x in rules.overlap:
-                        j0 = i0 + x[0] * dir[0]
-                        j1 = i1 + x[1] * dir[1]
-                        if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
-                            self[i0, i1].overlap.add(self[j0, j1])
+                        for (x0, x1) in ((x[0], x[1]), (x[1], x[0])):
+                            j0 = i0 + x0 * dir[0]
+                            j1 = i1 + x1 * dir[1]
+                            if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
+                                self[i0, i1].overlap.add(self[j0, j1])
                     for x in rules.neighbor:
-                        j0 = i0 + x[0] * dir[0]
-                        j1 = i1 + x[1] * dir[1]
-                        if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
-                            self[i0, i1].neighbor.add(self[j0, j1])
+                        for (x0, x1) in ((x[0], x[1]), (x[1], x[0])):
+                            j0 = i0 + x0 * dir[0]
+                            j1 = i1 + x1 * dir[1]
+                            if 0 <= j0 < rules.size and 0 <= j1 < rules.size:
+                                self[i0, i1].neighbor.add(self[j0, j1])
 
     def __str__(self) -> str:
         '''Return string version of board'''
@@ -493,8 +495,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
-    rules = Rules([(0, 0), (1, 0), (0, 1), (1, 1)],
-                  [(2, 0), (0, 2), (2, 1), (1, 2)],
+    rules = Rules([(0, 0), (1, 0), (1, 1)],
+                  [(2, 0), (2, 1)],
                   size=vars(args)['board_size'],
                   allow_suicide=vars(args)['allow_suicide'],
                   handicap=vars(args)['handicap'])

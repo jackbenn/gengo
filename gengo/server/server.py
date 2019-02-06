@@ -33,17 +33,17 @@ async def run_game(game_name):
     handicap = int(handicap) if handicap.isdigit() else 1
     overlap = await websocket1.recv()
     if overlap == "standard":
-        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
-                         [(2, 0), (0, 2), (2, 1), (1, 2)])
+        overlap_lists = ([(0, 0), (1, 0), (1, 1)],
+                         [(2, 0), (2, 1)])
     elif overlap == "go":
         overlap_lists = ([(0, 0)],
                          [(1, 0)])
     elif overlap == "large-n":
-        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1)],
-                         [(2, 0), (0, 2), (2, 1), (1, 2), (2,2), (3,0), (0,3), (3,1), (1,3)])
+        overlap_lists = ([(0, 0), (1, 0), (1, 1)],
+                         [(2, 0), (2, 1), (2,2), (3,0), (3,1)])
     elif overlap == "large-o":
-        overlap_lists = ([(0, 0), (1, 0), (0, 1), (1, 1), (2, 0), (0, 2), (2, 1), (1, 2)],
-                         [(2,2), (3,0), (0,3), (3,1), (1,3), (3,2), (2,3)])
+        overlap_lists = ([(0, 0), (1, 0), (1, 1), (2, 0), (2, 1)],
+                         [(2,2), (3,0), (3,1), (3,2)])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
