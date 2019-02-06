@@ -1,7 +1,8 @@
+\connect gengo
+
 drop table move;
 drop table game;
 drop table player;
-
 
 
 create table player (
@@ -12,9 +13,9 @@ create table player (
 create table game (
     id serial primary key,
     name varchar,
+    board_size int not null,
     player1 int references player(id) not null,
-    player2 int references player(id) not null,
-    score int
+    player2 int references player(id) not null
 );
 
 create table move (

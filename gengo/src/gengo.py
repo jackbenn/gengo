@@ -98,19 +98,27 @@ class Game:
         cur = conn.cursor()
 
         if self.id is None:
-            cur.execute("""insert into game (player1, player2)
-                           values (%s, %s) returning id""",
-                        (self.players[0].id,
+            cur.execute("""insert into game (name, board_size, player1, player2)
+                           values (%s, %s, %s, %s) returning id""",
+                        (self.name,
+                         self.rules.size,
+                         self.players[0].id,
                          self.players[1].id))
             self.id = cur.fetchone()[0]
         sequence = 0
         for move in self.moves:
-            cur.execute("""insert into move (game, row, col, sequence)
-                        values (%s, %s, %s, %s)""",
-                        (self.id,
-                         move[0],
-                         move[1],
-                         sequence))
+            if move == None:   # a pass
+                cur.execute("""insert into move (game, row, col, sequence)
+                            values (%s, NULL, NULL, %s)""",
+                            (self.id,
+                            sequence))
+            else:
+                cur.execute("""insert into move (game, row, col, sequence)
+                            values (%s, %s, %s, %s)""",
+                            (self.id,
+                            move[0],
+                            move[1],
+                            sequence))
             sequence += 1
         conn.commit()
 
@@ -527,8 +535,8 @@ if __name__ == '__main__':
     print(game)
     logging.info(f"The game is complete")
     print(f"The final score is {game.board.stone_scores()}")
-    """
+    
     conn = psycopg2.connect("dbname='gengo'")
-    conn.set_session(autocommit=True)
+    #conn.set_session(autocommit=True)
     game.save(conn)
-    """
+    
