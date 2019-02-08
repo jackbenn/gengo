@@ -41,6 +41,9 @@ class Rules:
         self.allow_suicide = allow_suicide
         self.play_in_own_overlap = play_in_own_overlap
         self.handicap = handicap
+        if self.play_in_own_overlap:
+            self.neighbor.extend(self.overlap)
+        print(self.neighbor)
 
 
 class Game:
@@ -274,10 +277,6 @@ class GridBoard (Board):
 
     def get_board_colors(self) -> List[List[str]]:
         '''Return list of lists of colors to paint on the server.'''
-        empty_color = 'sandybrown'  # type:str
-        overlap_color = 'grey'  # type: str
-        dark_overlap_color = 'dark_grey'  # type: str
-        light_overlap_color = 'light_grey'  # type: str
         board = []  # type: List[List[str]]
 
         for i in range(self.size):
@@ -344,6 +343,8 @@ class Space:
         if game.rules.play_in_own_overlap:
             if not self.is_empty(player):
                 raise InvalidMove("Can't move in opponent's overlap region")
+            if self.stone is not None:
+                raise InvalidMove("Can't play on top of existing stone")
         else:
             if not self.is_empty():
                 raise InvalidMove("Can't move in overlap region")
@@ -354,9 +355,11 @@ class Space:
         self.stone = Stone(player, self)
         # add to existing groups
         merge_groups = set()
-        for group in self.liberty_of:
-            if group.owner == player and group != self.stone.group:
-                merge_groups.add(group)
+        for neighbor_space in self.neighbor:
+            if neighbor_space.stone is not None:
+                group = neighbor_space.stone.group
+                if group.owner == player and group != self.stone.group:
+                    merge_groups.add(group)
         for group in merge_groups:
             self.stone.group.merge(group)
         # keep track of all groups affected by the play
@@ -498,7 +501,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--no-suicide', dest='allow_suicide',
                         action='store_false', help="Don't allow suicide/friendly fire")
-    parser.add_argument('--play-in-own-overlap', dest='play-in-own-overlap',
+    parser.add_argument('--play-in-own-overlap', dest='play_in_own_overlap',
                         action='store_true', help="Allow playing in one own's stone's overlap")
     parser.add_argument('--board-size', dest="board_size", default=19,
                         type=int, help="Size of the board")
