@@ -26,6 +26,7 @@ class Rules:
                  size: int = 11,
                  no_capture_back_ko: bool = True,
                  allow_suicide: bool = True,
+                 play_in_own_overlap = False,
                  handicap: int = 1) -> None:
         """
         size: board size
@@ -38,6 +39,7 @@ class Rules:
         self.neighbor = neighbor
         self.no_capture_back_ko = no_capture_back_ko
         self.allow_suicide = allow_suicide
+        self.play_in_own_overlap = play_in_own_overlap
         self.handicap = handicap
 
 
@@ -274,6 +276,8 @@ class GridBoard (Board):
         '''Return list of lists of colors to paint on the server.'''
         empty_color = 'sandybrown'  # type:str
         overlap_color = 'grey'  # type: str
+        dark_overlap_color = 'dark_grey'  # type: str
+        light_overlap_color = 'light_grey'  # type: str
         board = []  # type: List[List[str]]
 
         for i in range(self.size):
@@ -320,7 +324,7 @@ class Player:
 
 class Space:
     def __init__(self):
-        self.overlapcount = 0  # number of stones with which it overlaps
+        self.overlapcount = [0, 0]  # # stones with which it overlaps from each player
         self.stone = None
         self.overlap = set()
         self.neighbor = set()
@@ -329,13 +333,20 @@ class Space:
         self.liberty_of = set()  # groups of which this is a liberty
         self.coord = None  # type: Optional[Tuple[Int, Int]]
 
-    def is_empty(self) -> bool:
+    def is_empty(self, player=None) -> bool:
         '''does it not overlap with a stone?'''
-        return self.overlapcount == 0
+        if player == None:
+            return self.overlapcount == [0, 0]
+        else:
+            return self.overlapcount[1 - player.index] == 0
 
     def play(self, player: Player, game: Game) -> None:
-        if not self.is_empty():
-            raise InvalidMove("Can't move in overlap region")
+        if game.rules.play_in_own_overlap:
+            if not self.is_empty(player):
+                raise InvalidMove("Can't move in opponent's overlap region")
+        else:
+            if not self.is_empty():
+                raise InvalidMove("Can't move in overlap region")
 
         possible_ko = False
 
@@ -352,7 +363,7 @@ class Space:
         affected_groups = set()
         # make this space and all overlaps not empty
         for space in self.overlap:
-            space.overlapcount += 1
+            space.overlapcount[player.index] += 1
             # find neighboring opponent's groups
             for group in space.liberty_of:
                 group.liberties.remove(space)
@@ -425,7 +436,7 @@ class Stone:
         logging.info("The stone died.")
         self.location.stone = None
         for space in self.location.overlap:
-            space.overlapcount -= 1
+            space.overlapcount[owner.index] -= 1
             # add as liberty to other groups
             if space.is_empty():
                 logging.info("Freed a space to be a liberty...")
@@ -487,6 +498,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--no-suicide', dest='allow_suicide',
                         action='store_false', help="Don't allow suicide/friendly fire")
+    parser.add_argument('--play-in-own-overlap', dest='play-in-own-overlap',
+                        action='store_true', help="Allow playing in one own's stone's overlap")
     parser.add_argument('--board-size', dest="board_size", default=19,
                         type=int, help="Size of the board")
     parser.add_argument('--handicap', dest="handicap", default=1,
@@ -500,6 +513,7 @@ if __name__ == '__main__':
                   [(2, 0), (2, 1)],
                   size=args.board_size,
                   allow_suicide=args.allow_suicide,
+                  play_in_own_overlap=args.play_in_own_overlap,
                   handicap=args.handicap)
 
     p1 = Player("X", "X", "black", 1)
