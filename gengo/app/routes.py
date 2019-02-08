@@ -22,12 +22,14 @@ def game():
     action = request.args.get('action')
 
     allow_suicide = "-"
+    play_in_own_overlap = "-"
     play_black = "-"
     handicap = 1
     overlap='standard'
 
     if action == "new":
         allow_suicide = "allow_suicide" in request.args
+        play_in_own_overlap = "play_in_own_overlap" in request.args
         play_black = "play_black" in request.args
         try:
             handicap = int(request.args.get('handicap'))
@@ -38,6 +40,7 @@ def game():
                            game_name=game_name,
                            board_size=board_size,
                            allow_suicide=allow_suicide,
+                           play_in_own_overlap=play_in_own_overlap,
                            play_black=play_black,
                            handicap=handicap,
                            overlap=overlap,

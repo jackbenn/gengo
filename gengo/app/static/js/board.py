@@ -88,6 +88,7 @@ def on_open(evt):
     game_name = div_rules.attrs['game_name']
     board_size = int(div_rules.attrs['board_size'])
     allow_suicide = div_rules.attrs['allow_suicide']
+    play_in_own_overlap = div_rules.attrs['play_in_own_overlap']
     play_black = div_rules.attrs['play_black']
     handicap = div_rules.attrs['handicap']
     overlap = div_rules.attrs['overlap']
@@ -99,6 +100,7 @@ def on_open(evt):
         ws.send(game_name)
         ws.send(str(board_size))
         ws.send(allow_suicide)
+        ws.send(play_in_own_overlap)
         ws.send(play_black)
         ws.send(handicap)
         ws.send(overlap)

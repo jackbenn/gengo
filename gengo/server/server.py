@@ -29,6 +29,7 @@ async def run_game(game_name):
 
     board_size = int(await websocket1.recv())
     allow_suicide = (await websocket1.recv()) == "True"
+    play_in_own_overlap = (await websocket1.recv()) == "True"
     play_black = (await websocket1.recv()) == "True"
     handicap = await websocket1.recv()
     handicap = int(handicap) if handicap.isdigit() else 1
@@ -48,6 +49,7 @@ async def run_game(game_name):
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
+    logging.info(f"play_in_own_overlap {play_in_own_overlap}")
     logging.info(f"play_black {play_black}")
     logging.info(f"handicap {handicap}")
     games[game_name]['board_size'] = board_size
@@ -61,6 +63,7 @@ async def run_game(game_name):
     rules = Rules(*overlap_lists,
                   size=board_size,
                   allow_suicide=allow_suicide,
+                  play_in_own_overlap=play_in_own_overlap,
                   handicap=handicap)
 
     p1 = Player("X", "X", "black", 1)

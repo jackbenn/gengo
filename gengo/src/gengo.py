@@ -439,7 +439,7 @@ class Stone:
         logging.info("The stone died.")
         self.location.stone = None
         for space in self.location.overlap:
-            space.overlapcount[owner.index] -= 1
+            space.overlapcount[self.owner.index] -= 1
             # add as liberty to other groups
             if space.is_empty():
                 logging.info("Freed a space to be a liberty...")
