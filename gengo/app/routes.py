@@ -5,8 +5,11 @@ app = Flask(__name__)
 
 
 @app.route('/')
-@app.route('/new')
 def index():
+    return render_template('index.html')
+    
+@app.route('/new')
+def new():
     return render_template('new.html')
 
 

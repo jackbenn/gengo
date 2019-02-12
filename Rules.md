@@ -40,15 +40,15 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 
 The best rules are not yet clear so some rules may later be changed.
 
-1. Should suicide be legal? (currently: yes)
+1. Should suicide be legal? (default: yes)
    * There doesn't seem to be a reason to make it illegal.
 2. Should it be legal to kill one's own groups (not connected to the stone played) (currently: yes)
    * If so, should the group with the stone played die
       * before,
       * after, or
-      * at the same time as others of that player? (currently: same time)
+      * at the same time as others of that player? (default: same time)
     The current option seems the most logical and easiest to code.
-3. Should it be legal to play inside the overlap of one's own stones? (currently: no)
+3. Should it be legal to play inside the overlap of one's own stones? (default: no)
     * Pro:
         * it avoids the weird inability to connect stones
     * Con:
@@ -61,10 +61,10 @@ The best rules are not yet clear so some rules may later be changed.
     * the ordinarily (Chinese style) super-ko rule is an option, but it would be difficult to keep track of whether all the possible positions of a ko were exhausted, and each turn in a ko battle would take several turns.
 5. How do we score? (currently: Area scoring)
     * Stone scoring. This is the easiest to count and the most consistent logically, but it's a pain to play. This is particularly true here, where the end becomes a puzzle of squeezing stones in without killing eyes.
-    * Area scoring. Here we'd count total number of spaces either surrounded or overlapped. Spaces overlapped by stone of both color would count as neutral, or maybe be split to make it sum to the size of the board.
+    * Area scoring. Here we count total number of spaces either overlapped or surrounded by overlapped stones. Spaces overlapped by stones of both color count as neutral.
     * Territory scoring. This might be a bit easier than area counting, but to do this you'd need to specify a ratio of the value of captured stones to surrounded spaces, and there might players could take advantage of that to fill in opponent's territory.
-6. What are the best overlap/neighbor regions? (currently: see above)
-    * The current regions are choosing to be fairly small (so it's not too confusing) and to have similar behavior to go. One way to measure "similar behavior" is the minimal number of stones to form a live group in the corner, along a side, or in the open. Overall it requires significantly fewer stones to make life it gengo, suggesting the regions should be tweaked.
+6. What are the best overlap/neighbor regions? (default: see above)
+    * The current regions are choosen to be fairly small (so it's not too confusing) and to have similar behavior to go. One way to measure "similar behavior" is the minimal number of stones to form a live group in the corner, along a side, or in the open. Overall it requires significantly fewer stones to make life it gengo, suggesting the regions should be tweaked.
     
     Location | Stones in go | Stones in gengo
     ---------|--------------|-----------------

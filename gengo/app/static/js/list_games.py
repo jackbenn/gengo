@@ -11,6 +11,7 @@ import json
 def on_message(evt):
     games = json.loads(evt.data)
     game_list = document['games']
+    game_list.text = ''
     for game_data in games:
         logging.info("Game data:", game_data)
         game_name = game_data["game_name"]
