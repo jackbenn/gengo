@@ -1,11 +1,11 @@
 <html>
     <head>
-        <script src="{{url_for('static', filename='brython/brython.js') }}"></script>
-        <script src="{{url_for('static', filename='brython/brython_stdlib.js') }}"></script>
-        <link href="{{url_for('static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
+        <script src="{{url_for('gengo/static', filename='brython/brython.js') }}"></script>
+        <script src="{{url_for('gengo/static', filename='brython/brython_stdlib.js') }}"></script>
+        <link href="{{url_for('gengo/static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
     </head>
     <body onload="brython(1)">
-    <script src="{{url_for('static', filename='js/list_games.py')}}"
+    <script src="{{url_for('gengo/static', filename='js/list_games.py')}}"
         type="text/python"></script>
 
     <h1>Join a game</h1>
