@@ -30,7 +30,7 @@ def on_message(evt):
     if is_my_turn:
         document['status'].text = "Click on the board to move"
     else:
-        document['status'].text = "Waiting for opponent"
+        document['status'].text = "Waiting for opponent to play"
 
     for x in range(board_size):
         for y in range(board_size):

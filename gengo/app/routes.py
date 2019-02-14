@@ -4,21 +4,21 @@ from flask import Flask
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/gengo')
 def index():
     return render_template('index.html')
-    
-@app.route('/new')
+
+@app.route('/gengo/new')
 def new():
     return render_template('new.html')
 
 
-@app.route('/join', methods=['GET'])
+@app.route('/gengo/join', methods=['GET'])
 def join():
     return render_template('join.html')
 
 
-@app.route('/game', methods=['GET'])
+@app.route('/gengo/game', methods=['GET'])
 def game():
     game_name = request.args.get('game_name')
     board_size = int(request.args.get('board_size'))

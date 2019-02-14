@@ -18,7 +18,7 @@ def on_message(evt):
         board_size = int(game_data["board_size"])
         li = LI()
         a = A(game_name)
-        a.attrs["href"] = f"/game?game_name={game_name}&board_size={board_size}&action=join"
+        a.attrs["href"] = f"/gengo/game?game_name={game_name}&board_size={board_size}&action=join"
         li <= a
         game_list <= li
 
