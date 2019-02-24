@@ -1,14 +1,14 @@
 <html>
     <head>
-    <script src="{{url_for('gengo/static', filename='brython/brython.js') }}"></script>
-    <script src="{{url_for('gengo/static', filename='brython/brython_stdlib.js') }}"></script>
-    <link href="{{url_for('gengo/static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
+    <script src="{{url_for('static', filename='brython/brython.js') }}"></script>
+    <script src="{{url_for('static', filename='brython/brython_stdlib.js') }}"></script>
+    <link href="{{url_for('static', filename='css/default.css') }}" rel="stylesheet" type="text/css"></link>
 
     <title>Gengo</title>
     <title>Home page</title>
     </head>
     <body onload="brython(1)">
-        <script src="{{url_for('gengo/static', filename='js/board.py')}}"
+        <script src="{{url_for('static', filename='js/board.py')}}"
                 type="text/python"></script>
 
         <div id="rules"

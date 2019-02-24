@@ -3,6 +3,10 @@ from flask import Flask
 #import app
 app = Flask(__name__)
 
+@app.route('/gengo/static')
+def static():
+    '''Override default static method'''
+    return app.send_static_file('static/')
 
 @app.route('/gengo')
 def index():

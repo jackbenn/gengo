@@ -43,7 +43,7 @@ flask run --host=0.0.0.0
 ```
 
 (for a developement server, do `export FLASK_ENV=development` first).
-This starts a server on port 5000. Point a browser to http://localhost:5000/new and enter the name of the game, the board size and any other options. Point a second browser to http://localhost:5000/join and click on the appropriate game.
+This starts a server on port 5000. Point a browser to http://localhost:5000/gengo/new and enter the name of the game, the board size and any other options. Point a second browser to http://localhost:5000/gengo/join and click on the appropriate game.
 
 To connect to the web server from a client on another machine, ensure the firewall allows access to ports 5000 and 8765 (for websocket connections to the game server).
 
