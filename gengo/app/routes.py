@@ -4,7 +4,7 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route('/gengo/static')
-def static():
+def gengo_static():
     '''Override default static method'''
     return app.send_static_file('static/')
 
