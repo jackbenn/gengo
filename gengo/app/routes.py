@@ -1,14 +1,15 @@
 from flask import render_template, request
 from flask import Flask
+import os
 #import app
 app = Flask(__name__)
 
-@app.route('/gengo/static')
-def gengo_static():
+@app.route('/gengo/static/<path:pathname>')
+def gengo_static(pathname):
     '''Override default static method'''
-    return app.send_static_file('static/')
+    return app.send_static_file(pathname)
 
-@app.route('/gengo')
+@app.route('/gengo/')
 def index():
     return render_template('index.html')
 
