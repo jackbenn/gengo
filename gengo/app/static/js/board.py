@@ -10,7 +10,8 @@ board_size = None
 is_my_turn = None
 
 # for testing
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
+
 
 def trans(position):
     return position * 30 + 15
