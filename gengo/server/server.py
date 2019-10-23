@@ -9,10 +9,11 @@ from typing import Dict
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
 # for testing
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 games = {}
 options = {}
+
 
 def get_game_data(board) -> Dict:
     '''Return list of lists of colors to paint on the server.
@@ -22,6 +23,7 @@ def get_game_data(board) -> Dict:
     game_data['stones'] = board.get_stones_positions()
     game_data['pairs'] = board.find_neighbor_stones()
     return game_data
+
 
 async def run_game(game_name):
     logging.info("Waiting for first connection")
@@ -42,10 +44,10 @@ async def run_game(game_name):
                          [(1, 0)])
     elif overlap == "large-n":
         overlap_lists = ([(0, 0), (1, 0), (1, 1)],
-                         [(2, 0), (2, 1), (2,2), (3,0), (3,1)])
+                         [(2, 0), (2, 1), (2, 2), (3, 0), (3, 1)])
     elif overlap == "large-o":
         overlap_lists = ([(0, 0), (1, 0), (1, 1), (2, 0), (2, 1)],
-                         [(2,2), (3,0), (3,1), (3,2)])
+                         [(2, 2), (3, 0), (3, 1), (3, 2)])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
@@ -75,7 +77,7 @@ async def run_game(game_name):
         websockets = [websocket1, websocket2]
     else:
         websockets = [websocket2, websocket1]
-    
+
     while True:
         warning = None
         this_player = game.next_player
@@ -124,7 +126,6 @@ async def run_game(game_name):
                 conn = psycopg2.connect("dbname='gengo'")
                 game.save(conn)
 
-
         logging.info(f">json ({response})")
 
         response = json.dumps(game_data)
@@ -139,7 +140,8 @@ async def get_connection(websocket, path):
         games_data = []
         for game_name in games:
             if games[game_name]['status'] == 'created':
-                games_data.append({'game_name': game_name, 'board_size': games[game_name]['board_size']})
+                games_data.append({'game_name': game_name,
+                                   'board_size': games[game_name]['board_size']})
         game_names = json.dumps(list(games_data))
         logging.info(game_names)
         print("games: ", game_names)
@@ -173,6 +175,7 @@ async def get_connection(websocket, path):
         while True:
             logging.info("sleeping a little in connection")
             await asyncio.sleep(60)
+
 
 def start_server(args):
     options['database'] = args.database

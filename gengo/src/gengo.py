@@ -26,11 +26,12 @@ class Rules:
                  size: int = 11,
                  no_capture_back_ko: bool = True,
                  allow_suicide: bool = True,
-                 play_in_own_overlap = False,
+                 play_in_own_overlap: bool = False,
                  handicap: int = 1) -> None:
         """
         size: board size
-        no_capture_back_ko: should single-stone capture-backs be illegal (a ko-rule variant)
+        no_capture_back_ko: should single-stone capture-backs be illegal?
+                            (a ko-rule variant)
         allow_suicide: should suicide be illegal?
         handicap: number of moves the black plays at the beginning of the game
         """
@@ -102,7 +103,8 @@ class Game:
         cur = conn.cursor()
 
         if self.id is None:
-            cur.execute("""insert into game (name, board_size, player1, player2)
+            cur.execute("""insert into game
+                           (name, board_size, player1, player2)
                            values (%s, %s, %s, %s) returning id""",
                         (self.name,
                          self.rules.size,
@@ -111,18 +113,18 @@ class Game:
             self.id = cur.fetchone()[0]
         sequence = 0
         for move in self.moves:
-            if move == None:   # a pass
+            if move is None:   # a pass
                 cur.execute("""insert into move (game, row, col, sequence)
                             values (%s, NULL, NULL, %s)""",
                             (self.id,
-                            sequence))
+                             sequence))
             else:
                 cur.execute("""insert into move (game, row, col, sequence)
                             values (%s, %s, %s, %s)""",
                             (self.id,
-                            move[0],
-                            move[1],
-                            sequence))
+                             move[0],
+                             move[1],
+                             sequence))
             sequence += 1
         conn.commit()
 
@@ -289,7 +291,7 @@ class GridBoard (Board):
                     row.append("overlap")
             board.append(row)
         return board
-    
+
     def get_stones_positions(self) -> List[List[Tuple[int, int]]]:
         stones = [[], []]  # type: List[List[Tuple[int, int]]]
         for space in self:
@@ -323,7 +325,7 @@ class Player:
 
 class Space:
     def __init__(self):
-        self.overlapcount = [0, 0]  # # stones with which it overlaps from each player
+        self.overlapcount = [0, 0]  # stones with which it overlaps from each player
         self.stone = None
         self.overlap = set()
         self.neighbor = set()
@@ -334,7 +336,7 @@ class Space:
 
     def is_empty(self, player=None) -> bool:
         '''does it not overlap with a stone?'''
-        if player == None:
+        if player is None:
             return self.overlapcount == [0, 0]
         else:
             return self.overlapcount[1 - player.index] == 0
@@ -495,20 +497,28 @@ class Group:
         logging.info(f"Liberties in merged group: {len(self.liberties)}")
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Play Gengo, a generalized version of go')
 
-    parser.add_argument('--no-suicide', dest='allow_suicide',
-                        action='store_false', help="Don't allow suicide/friendly fire")
-    parser.add_argument('--play-in-own-overlap', dest='play_in_own_overlap',
-                        action='store_true', help="Allow playing in one own's stone's overlap")
-    parser.add_argument('--board-size', dest="board_size", default=19,
-                        type=int, help="Size of the board")
-    parser.add_argument('--handicap', dest="handicap", default=1,
-                        type=int, help="Number of free handicap stones for the black player")
+    parser.add_argument('--no-suicide',
+                        dest='allow_suicide',
+                        action='store_false',
+                        help="Don't allow suicide/friendly fire")
+    parser.add_argument('--play-in-own-overlap',
+                        dest='play_in_own_overlap',
+                        action='store_true',
+                        help="Allow playing in one own's stone's overlap")
+    parser.add_argument('--board-size', dest="board_size",
+                        default=19,
+                        type=int,
+                        help="Size of the board")
+    parser.add_argument('--handicap', dest="handicap",
+                        default=1,
+                        type=int,
+                        help="Number of free handicap stones for the black player")
     parser.add_argument('--database', dest='database',
-                        action='store_true', help="Save games to database")
+                        action='store_true',
+                        help="Save games to database")
     args = parser.parse_args()
     print(args)
 
@@ -526,7 +536,8 @@ if __name__ == '__main__':
 
     while (True):
         print(game)
-        print(f"{game.players[game.next_player].name}'s turn. Enter coodinates:  ", end="")
+        print(f"{game.players[game.next_player].name}'s turn. Enter coodinates:  ",
+              end="")
         move_input = input()
         if re.match(r"^\s*\d+\s*,\s*\d+\s*$", move_input):
             move = ast.literal_eval(move_input)
@@ -555,9 +566,8 @@ if __name__ == '__main__':
     print(game)
     logging.info(f"The game is complete")
     print(f"The final score is {game.board.stone_scores()}")
-    
+
     if args.database:
         import psycopg2
         conn = psycopg2.connect("dbname='gengo'")
         game.save(conn)
-    
