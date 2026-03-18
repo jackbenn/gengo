@@ -9,18 +9,24 @@ import json
 
 
 def on_message(evt):
+    from browser.html import EM
     games = json.loads(evt.data)
     game_list = document['games']
     game_list.text = ''
-    for game_data in games:
-        logging.info("Game data:", game_data)
-        game_name = game_data["game_name"]
-        board_size = int(game_data["board_size"])
+    if not games:
         li = LI()
-        a = A(game_name)
-        a.attrs["href"] = f"/gengo/game?game_name={game_name}&board_size={board_size}&action=join"
-        li <= a
+        li <= EM("(no active games)")
         game_list <= li
+    else:
+        for game_data in games:
+            logging.info("Game data:", game_data)
+            game_name = game_data["game_name"]
+            board_size = int(game_data["board_size"])
+            li = LI()
+            a = A(game_name)
+            a.attrs["href"] = f"/gengo/game?game_name={game_name}&board_size={board_size}&action=join"
+            li <= a
+            game_list <= li
 
 
 def on_open(evt):
