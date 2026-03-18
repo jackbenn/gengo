@@ -1,12 +1,72 @@
+<html>
 <head>
     <title>Gengo</title>
+    <meta charset="utf-8"/>
+    <script src="/gengo/static/brython/brython.js"></script>
+    <script src="/gengo/static/brython/brython_stdlib.js"></script>
+    <link href="/gengo/static/css/default.css" rel="stylesheet" type="text/css"/>
 </head>
-<body>
-    <h1>Welcome to Gengo</h1>
-    Gengo (generalized go) is a variant of go.
-    For server code and more information, see my
-    <a href="https://github.com/jackbenn/gengo/blob/master/README.md">github page</a>, in particular the
-    <a href="https://github.com/jackbenn/gengo/blob/master/Rules.md">rules</a>. You can
-    <a href="/gengo/new">start a new game</a> or
-    <a href="/gengo/join">join a game</a>.
+<body onload="brython(1)">
+    <script src="/gengo/static/js/list_games.py" type="text/python"></script>
+
+    <div class="header-image-container">
+        <img src="/gengo/static/img/sample_game.png" alt="A game of Gengo in progress"/>
+    </div>
+
+    <div class="page-container">
+        <div class="site-header">
+            <h1>Gengo</h1>
+        </div>
+        <p>
+            Gengo (generalized go) is a variant of go played on a finer-grained grid.
+            The goal is to claim more of the board than your opponent by surrounding and capturing their stones.
+            See the <a href="https://github.com/jackbenn/gengo/blob/master/Rules.md">rules</a>
+            for more information.
+        </p>
+
+        <div class="two-column">
+            <section class="card">
+                <h2>Start a New Game</h2>
+                <form action="/gengo/game" method="get">
+                    <div class="form-grid">
+                        <label for="game_name">Game name:</label>
+                        <input type="text" id="game_name" name="game_name"/>
+
+                        <label for="board_size">Board size:</label>
+                        <input type="text" id="board_size" value="19" maxlength="3" name="board_size"/>
+
+                        <label for="allow_suicide">Allow suicide:</label>
+                        <input type="checkbox" id="allow_suicide" checked name="allow_suicide"/>
+
+                        <label for="play_in_own_overlap">Play in own overlap:</label>
+                        <input type="checkbox" id="play_in_own_overlap" name="play_in_own_overlap"/>
+
+                        <label for="play_black">Play black:</label>
+                        <input type="checkbox" id="play_black" checked name="play_black"/>
+
+                        <label for="handicap">Handicap:</label>
+                        <input type="text" id="handicap" maxlength="2" name="handicap"/>
+
+                        <label for="overlap">Overlap:</label>
+                        <select id="overlap" name="overlap">
+                            <option value="standard">Standard Gengo (10,11;20,21)</option>
+                            <option value="go">Standard Go (;10)</option>
+                            <option value="large-n">Large Neighbor Region (10,11;20,21,22,30,31)</option>
+                            <option value="large-o">Large Overlap (10,11,20,21;22,30,31,32)</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="action" value="new"/>
+                    <div class="form-footer">
+                        <input type="submit" value="Start Game"/>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Join a Game</h2>
+                <ul id="games">Loading&hellip;</ul>
+            </section>
+        </div>
+    </div>
 </body>
+</html>
