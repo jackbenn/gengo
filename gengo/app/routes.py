@@ -14,13 +14,10 @@ def index():
     return render_template('index.html')
 
 @app.route('/gengo/new')
-def new():
-    return render_template('new.html')
-
-
-@app.route('/gengo/join', methods=['GET'])
-def join():
-    return render_template('join.html')
+@app.route('/gengo/join')
+def redirect_to_index():
+    from flask import redirect
+    return redirect('/gengo/')
 
 
 @app.route('/gengo/game', methods=['GET'])

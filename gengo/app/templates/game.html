@@ -1,31 +1,35 @@
 <html>
-    <head>
+<head>
+    <title>Gengo</title>
+    <meta charset="utf-8"/>
     <script src="https://cdn.jsdelivr.net/npm/brython@3.9.0/brython.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/brython@3.9.0/brython_stdlib.js"></script>
-    <link href="/gengo/static/css/default.css" rel="stylesheet" type="text/css"></link>
+    <link href="/gengo/static/css/default.css" rel="stylesheet" type="text/css"/>
+</head>
+<body onload="brython(1)">
+    <script src="/gengo/static/js/board.py" type="text/python"></script>
 
-    <title>Gengo</title>
-    <title>Home page</title>
-    </head>
-    <body onload="brython(1)">
-        <script src="/gengo/static/js/board.py"
-                type="text/python"></script>
+    <div id="rules"
+         game_name={{game_name}}
+         board_size={{board_size}}
+         allow_suicide={{allow_suicide}}
+         play_in_own_overlap={{play_in_own_overlap}}
+         play_black={{play_black}}
+         handicap={{handicap}}
+         overlap={{overlap}}
+         action={{action}}></div>
 
-        <div id="rules"
-             game_name={{game_name}}
-             board_size={{board_size}}
-             allow_suicide={{allow_suicide}}
-             play_in_own_overlap={{play_in_own_overlap}}
-             play_black={{play_black}}
-             handicap={{handicap}}
-             overlap={{overlap}}
-             action={{action}}></div>
-        <div style="float:left;">
+    <div class="page-container">
+        <div class="site-header">
+            <h1><a href="/gengo/">Gengo</a></h1>
+            <nav><a href="/gengo/">&#8592; Home</a></nav>
+        </div>
+
+        <div class="game-container">
             <svg width="{{board_size*30 + 30}}" height="{{board_size*30 + 30}}" id="svg">
-                <rect x="{{0}}" y="{{0}}"
+                <rect x="0" y="0"
                     height="{{board_size*30 + 30}}"
                     width="{{board_size*30 + 30}}" class="empty"/>
-
                 <g transform="translate(15,15)">
                     {% for x in range(board_size) %}
                         {% for y in range(board_size) %}
@@ -41,18 +45,20 @@
                     <g id="stones"></g>
                 </g>
             </svg>
-        </div>
-        <div width="50" style="float:left; margin:20; font-family: sans-serif">
-            <div id="status" style="font-weight: bold;">Waiting for opponent to join</div>
-            <p></p>
-            <table style="">
-                <tr><td></td><td>Area score</td><td>Stone score</td></tr>
-                <tr><td>Black</td><td id="black-area-score">-</td><td id="black-stone-score">-</td></tr>
-                <tr><td>White</td><td id="white-area-score">-</td><td id="white-stone-score">-</td></tr>
-            </table>
-            <button type="button" id="undo">Undo</button>
-            <button type="button" id="pass">Pass</button>
-        </div>
-    </body>
-</html>
 
+            <div class="game-info card">
+                <div id="status">Waiting for opponent to join</div>
+                <table>
+                    <tr><th></th><th>Area</th><th>Stones</th></tr>
+                    <tr><td>Black</td><td id="black-area-score">—</td><td id="black-stone-score">—</td></tr>
+                    <tr><td>White</td><td id="white-area-score">—</td><td id="white-stone-score">—</td></tr>
+                </table>
+                <div class="game-buttons">
+                    <button type="button" id="undo">Undo</button>
+                    <button type="button" id="pass">Pass</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
