@@ -129,6 +129,11 @@ button:hover {
     background-color: #375437;
 }
 
+button:disabled {
+    background-color: #aaa;
+    cursor: default;
+}
+
 /* Game list */
 #games {
     list-style: none;
@@ -145,6 +150,14 @@ button:hover {
 }
 
 /* Game page */
+.game-page-container {
+    padding: 12px 16px 40px;
+}
+
+.game-page-container .site-header {
+    margin-bottom: 8px;
+}
+
 .game-container {
     display: flex;
     gap: 24px;

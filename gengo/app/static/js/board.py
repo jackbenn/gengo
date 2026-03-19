@@ -30,8 +30,12 @@ def on_message(evt):
 
     if is_my_turn:
         document['status'].text = "Click on the board to move"
+        document['pass'].disabled = False
+        document['undo'].disabled = True
     else:
         document['status'].text = "Waiting for opponent to play"
+        document['pass'].disabled = True
+        document['undo'].disabled = False
 
     for x in range(board_size):
         for y in range(board_size):
@@ -96,6 +100,8 @@ def on_open(evt):
     action = div_rules.attrs['action']
 
     logging.info("action = ", action)
+    if action == "join":
+        document['status'].text = "Waiting for opponent to play"
     if action == "new":
         ws.send("new game")
         ws.send(game_name)
