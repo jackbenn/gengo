@@ -17,6 +17,15 @@ def trans(position):
     return position * 30 + 15
 
 
+def set_button_enabled(btn_id, enabled):
+    btn = document[btn_id]
+    if enabled:
+        if 'disabled' in btn.attrs:
+            del btn.attrs['disabled']
+    else:
+        btn.attrs['disabled'] = ''
+
+
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
@@ -30,12 +39,10 @@ def on_message(evt):
 
     if is_my_turn:
         document['status'].text = "Click on the board to move"
-        document['pass'].disabled = False
-        document['undo'].disabled = True
     else:
         document['status'].text = "Waiting for opponent to play"
-        document['pass'].disabled = True
-        document['undo'].disabled = False
+    set_button_enabled('pass', is_my_turn)
+    set_button_enabled('undo', is_my_turn)
 
     for x in range(board_size):
         for y in range(board_size):
@@ -100,9 +107,8 @@ def on_open(evt):
     action = div_rules.attrs['action']
 
     logging.info("action = ", action)
-    if action == "join":
-        document['status'].text = "Waiting for opponent to play"
     if action == "new":
+        document['status'].text = "Waiting for opponent to join"
         ws.send("new game")
         ws.send(game_name)
         ws.send(str(board_size))
@@ -112,6 +118,7 @@ def on_open(evt):
         ws.send(handicap)
         ws.send(overlap)
     elif action == "join":
+        document['status'].text = "Waiting for opponent to play"
         ws.send("join game")
         ws.send(game_name)
     else:
