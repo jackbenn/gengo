@@ -91,6 +91,7 @@ h2 {
 .form-grid label {
     white-space: nowrap;
     color: #555;
+    cursor: help;
 }
 
 .form-footer {

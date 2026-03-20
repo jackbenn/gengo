@@ -111,28 +111,24 @@ async def run_game(game_name):
                 game = game.create_replay()
         logging.info(game)
 
-        # third, send the results of the move,
-        # plus that it's not your turn anymore
+        # third, send the results of the move to both players
         game_data = get_game_data(game.board)
-        game_data['is_my_turn'] = this_player == game.next_player
-        if warning is not None:
-            game_data['warning'] = warning
         if game.is_done:
             logging.info("Game is done")
             game_data['done'] = True
-            game_data['area_scores'] = game.board.area_scores()
-            game_data['stone_scores'] = game.board.stone_scores()
             games[game_name]['status'] = 'done'
             if options['database']:
                 import psycopg2
                 conn = psycopg2.connect("dbname='gengo'")
                 game.save(conn)
 
-        logging.info(f">json ({response})")
-
-        response = json.dumps(game_data)
-
-        await websocket.send(response)
+        for i, ws in enumerate(websockets):
+            player_data = dict(game_data)
+            player_data['is_my_turn'] = (not game.is_done) and (i == game.next_player)
+            if i == this_player and warning is not None:
+                player_data['warning'] = warning
+            logging.info(f">json to player {i}")
+            await ws.send(json.dumps(player_data))
 
 
 async def get_connection(websocket, path):

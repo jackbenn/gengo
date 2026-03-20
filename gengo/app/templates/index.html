@@ -30,25 +30,25 @@
                 <form action="/gengo/game" method="get">
                     <div class="form-grid">
                         <label for="game_name" title="A unique name for your game. Share this with your opponent so they can find and join it.">Game name:</label>
-                        <input type="text" id="game_name" name="game_name"/>
+                        <input type="text" id="game_name" name="game_name" title="A unique name for your game. Share this with your opponent so they can find and join it."/>
 
-                        <label for="board_size" title="The number of spaces along each side of the board. Standard go uses 19; smaller boards like 9 or 13 make for shorter games.">Board size:</label>
-                        <input type="text" id="board_size" value="19" maxlength="3" name="board_size"/>
+                        <label for="board_size" title="The number of spaces along each side of the board.">Board size:</label>
+                        <input type="text" id="board_size" value="19" maxlength="3" name="board_size" title="The number of spaces along each side of the board."/>
 
                         <label for="allow_suicide" title="If checked, you may play a stone that immediately has no liberties, capturing your own group.">Allow suicide:</label>
-                        <input type="checkbox" id="allow_suicide" checked name="allow_suicide"/>
+                        <input type="checkbox" id="allow_suicide" checked name="allow_suicide" title="If checked, you may play a stone that immediately has no liberties, capturing your own group."/>
 
                         <label for="play_in_own_overlap" title="If checked, you may place a stone within the overlap region of your own existing stones.">Play in own overlap:</label>
-                        <input type="checkbox" id="play_in_own_overlap" name="play_in_own_overlap"/>
+                        <input type="checkbox" id="play_in_own_overlap" name="play_in_own_overlap" title="If checked, you may place a stone within the overlap region of your own existing stones."/>
 
                         <label for="play_black" title="If checked, you play as black (the first player). Uncheck to play as white.">Play black:</label>
-                        <input type="checkbox" id="play_black" checked name="play_black"/>
+                        <input type="checkbox" id="play_black" checked name="play_black" title="If checked, you play as black (the first player). Uncheck to play as white."/>
 
                         <label for="handicap" title="Give black a head start: black places this many stones before white's first move. Must be 2 or more to take effect.">Handicap:</label>
-                        <input type="text" id="handicap" maxlength="2" name="handicap"/>
+                        <input type="text" id="handicap" maxlength="2" name="handicap" title="Give black a head start: black places this many stones before white's first move. Must be 2 or more to take effect."/>
 
                         <label for="overlap" title="Determines how large each stone's overlap and neighbor regions are. Larger regions change the game dynamics significantly.">Overlap:</label>
-                        <select id="overlap" name="overlap">
+                        <select id="overlap" name="overlap" title="Determines how large each stone's overlap and neighbor regions are. Larger regions change the game dynamics significantly.">
                             <option value="standard">Standard Gengo (10,11;20,21)</option>
                             <option value="go">Standard Go (;10)</option>
                             <option value="large-n">Large Neighbor Region (10,11;20,21,22,30,31)</option>
@@ -56,7 +56,7 @@
                         </select>
 
                         <label for="show_scores" title="If checked, area and stone scores are updated after every move, not just at the end of the game.">Show scores during game:</label>
-                        <input type="checkbox" id="show_scores" name="show_scores"/>
+                        <input type="checkbox" id="show_scores" name="show_scores" title="If checked, area and stone scores are updated after every move, not just at the end of the game."/>
                     </div>
                     <input type="hidden" name="action" value="new"/>
                     <div class="form-footer">
