@@ -8,6 +8,7 @@ import logging
 game_name = None
 board_size = None
 is_my_turn = None
+show_scores = False
 
 # for testing
 # logging.basicConfig(level=logging.DEBUG)
@@ -74,11 +75,12 @@ def on_message(evt):
                         y1=trans(pair[0][1]),
                         y2=trans(pair[1][1]))
         stones_div <= line
-    if 'done' in data:
+    if show_scores or 'done' in data:
         document['black-area-score'].text = data['area_scores'][0]
         document['white-area-score'].text = data['area_scores'][1]
         document['black-stone-score'].text = data['stone_scores'][0]
         document['white-stone-score'].text = data['stone_scores'][1]
+    if 'done' in data:
         document['status'].text = "Game complete"
 
     if 'warning' in data:
@@ -96,6 +98,7 @@ def on_open(evt):
     logging.info("Opened connection; creating initial board")
     global game_name
     global board_size
+    global show_scores
     div_rules = document.select('div#rules')[0]
     game_name = div_rules.attrs['game_name']
     board_size = int(div_rules.attrs['board_size'])
@@ -104,6 +107,7 @@ def on_open(evt):
     play_black = div_rules.attrs['play_black']
     handicap = div_rules.attrs['handicap']
     overlap = div_rules.attrs['overlap']
+    show_scores = div_rules.attrs['show_scores'] == 'True'
     action = div_rules.attrs['action']
 
     logging.info("action = ", action)

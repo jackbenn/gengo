@@ -17,6 +17,7 @@
          play_black={{play_black}}
          handicap={{handicap}}
          overlap={{overlap}}
+         show_scores={{show_scores}}
          action={{action}}></div>
 
     <div class="game-page-container">
@@ -49,7 +50,7 @@
             <div class="game-info card">
                 <div id="status">Connecting&hellip;</div>
                 <table>
-                    <tr><th></th><th>Area</th><th>Stones</th></tr>
+                    <tr><th></th><th title="Area score: total spaces overlapped by or fully surrounded by your stones. Spaces claimed by both colors are neutral.">Area</th><th title="Stone score: the number of your stones currently on the board. This is Gengo's default scoring method.">Stones</th></tr>
                     <tr><td>Black</td><td id="black-area-score">—</td><td id="black-stone-score">—</td></tr>
                     <tr><td>White</td><td id="white-area-score">—</td><td id="white-stone-score">—</td></tr>
                 </table>

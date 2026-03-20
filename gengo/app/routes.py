@@ -30,7 +30,8 @@ def game():
     play_in_own_overlap = "-"
     play_black = "-"
     handicap = 1
-    overlap='standard'
+    overlap = 'standard'
+    show_scores = False
 
     if action == "new":
         allow_suicide = "allow_suicide" in request.args
@@ -41,6 +42,7 @@ def game():
         except:
             handicap = 1
         overlap = request.args.get('overlap')
+        show_scores = "show_scores" in request.args
     return render_template('game.html',
                            game_name=game_name,
                            board_size=board_size,
@@ -49,4 +51,5 @@ def game():
                            play_black=play_black,
                            handicap=handicap,
                            overlap=overlap,
+                           show_scores=show_scores,
                            action=action)

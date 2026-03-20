@@ -22,6 +22,8 @@ def get_game_data(board) -> Dict:
     game_data['board'] = board.get_board_colors()
     game_data['stones'] = board.get_stones_positions()
     game_data['pairs'] = board.find_neighbor_stones()
+    game_data['area_scores'] = board.area_scores()
+    game_data['stone_scores'] = board.stone_scores()
     return game_data
 
 
