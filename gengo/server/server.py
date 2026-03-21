@@ -32,6 +32,7 @@ async def run_game(game_name):
     websocket1 = await games[game_name]['connections'].get()
 
     board_size = int(await websocket1.recv())
+    games[game_name]['board_size'] = board_size
     allow_suicide = (await websocket1.recv()) == "True"
     play_in_own_overlap = (await websocket1.recv()) == "True"
     play_black = (await websocket1.recv()) == "True"
@@ -140,7 +141,8 @@ async def get_connection(websocket, path):
     if action == "list games":
         games_data = []
         for game_name in games:
-            if games[game_name]['status'] == 'created':
+            if (games[game_name]['status'] == 'created' and
+                    'board_size' in games[game_name]):
                 games_data.append({'game_name': game_name,
                                    'board_size': games[game_name]['board_size']})
         game_names = json.dumps(list(games_data))

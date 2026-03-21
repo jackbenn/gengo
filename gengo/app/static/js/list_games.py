@@ -2,14 +2,13 @@ from browser import document, alert, svg
 from browser import websocket
 from browser import window
 import browser
-from browser.html import LI, A
+from browser.html import LI, A, EM
 import logging
 
 import json
 
 
 def on_message(evt):
-    from browser.html import EM
     games = json.loads(evt.data)
     game_list = document['games']
     game_list.text = ''
