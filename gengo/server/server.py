@@ -136,7 +136,7 @@ async def run_game(game_name):
             await ws.send(json.dumps(player_data))
 
 
-async def get_connection(websocket, path):
+async def get_connection(websocket):
     action = await websocket.recv()
     print(action)
     if action == "list games":
@@ -155,7 +155,7 @@ async def get_connection(websocket, path):
         game_name = await websocket.recv()
         if game_name not in games:
             # can shorted in python 3.7
-            task = asyncio.get_event_loop().create_task(run_game(game_name))
+            task = asyncio.create_task(run_game(game_name))
             # we should probably save the tasks somewhere??
             games[game_name] = {}
             games[game_name]['connections'] = asyncio.Queue()
@@ -181,11 +181,11 @@ async def get_connection(websocket, path):
             await asyncio.sleep(60)
 
 
+async def _run_server(args):
+    async with websockets.serve(get_connection, None, args.port):
+        await asyncio.get_running_loop().create_future()  # run forever
+
+
 def start_server(args):
     options['database'] = args.database
-
-    start_server = websockets.serve(get_connection, None, args.port)
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(start_server)
-    loop.run_forever()
+    asyncio.run(_run_server(args))
