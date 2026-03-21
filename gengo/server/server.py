@@ -31,15 +31,16 @@ async def run_game(game_name):
     logging.info("Waiting for first connection")
     websocket1 = await games[game_name]['connections'].get()
 
-    board_size = int(await websocket1.recv())
+    settings = json.loads(await websocket1.recv())
+    board_size = int(settings['board_size'])
     games[game_name]['board_size'] = board_size
-    allow_suicide = (await websocket1.recv()) == "True"
-    play_in_own_overlap = (await websocket1.recv()) == "True"
-    play_black = (await websocket1.recv()) == "True"
-    handicap = await websocket1.recv()
+    allow_suicide = settings['allow_suicide'] == "True"
+    play_in_own_overlap = settings['play_in_own_overlap'] == "True"
+    play_black = settings['play_black'] == "True"
+    handicap = str(settings['handicap'])
     handicap = int(handicap) if handicap.isdigit() else 1
-    overlap = await websocket1.recv()
-    show_scores = (await websocket1.recv()) == "True"
+    overlap = settings['overlap']
+    show_scores = settings['show_scores'] == "True"
     if overlap == "standard":
         overlap_lists = ([(0, 0), (1, 0), (1, 1)],
                          [(2, 0), (2, 1)])

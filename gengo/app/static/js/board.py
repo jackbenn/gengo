@@ -117,13 +117,15 @@ def on_open(evt):
         document['status'].text = "Waiting for opponent to join"
         ws.send("new game")
         ws.send(game_name)
-        ws.send(str(board_size))
-        ws.send(allow_suicide)
-        ws.send(play_in_own_overlap)
-        ws.send(play_black)
-        ws.send(handicap)
-        ws.send(overlap)
-        ws.send(str(show_scores))
+        ws.send(json.dumps({
+            'board_size': board_size,
+            'allow_suicide': allow_suicide,
+            'play_in_own_overlap': play_in_own_overlap,
+            'play_black': play_black,
+            'handicap': handicap,
+            'overlap': overlap,
+            'show_scores': str(show_scores),
+        }))
     elif action == "join":
         document['status'].text = "Waiting for opponent to play"
         ws.send("join game")
