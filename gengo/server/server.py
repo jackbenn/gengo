@@ -38,6 +38,7 @@ async def run_game(game_name):
     handicap = await websocket1.recv()
     handicap = int(handicap) if handicap.isdigit() else 1
     overlap = await websocket1.recv()
+    show_scores = (await websocket1.recv()) == "True"
     if overlap == "standard":
         overlap_lists = ([(0, 0), (1, 0), (1, 1)],
                          [(2, 0), (2, 1)])
@@ -89,6 +90,7 @@ async def run_game(game_name):
         # plus that it's your turn
         game_data = get_game_data(game.board)
         game_data['is_my_turn'] = True
+        game_data['show_scores'] = show_scores
         response = json.dumps(game_data)
         logging.info(f">json ({response})")
         await websocket.send(response)
@@ -113,6 +115,7 @@ async def run_game(game_name):
 
         # third, send the results of the move to both players
         game_data = get_game_data(game.board)
+        game_data['show_scores'] = show_scores
         if game.is_done:
             logging.info("Game is done")
             game_data['done'] = True

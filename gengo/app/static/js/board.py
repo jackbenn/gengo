@@ -30,13 +30,15 @@ def set_button_enabled(btn_id, enabled):
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    global is_my_turn
+    global is_my_turn, show_scores
     data = json.loads(evt.data)
     logging.info(f"Got message with data {data}")
     board = data['board']
     stones = data['stones']
     pairs = data['pairs']
     is_my_turn = data['is_my_turn']
+    if 'show_scores' in data:
+        show_scores = data['show_scores']
 
     if is_my_turn:
         document['status'].text = "Click on the board to move"
@@ -121,6 +123,7 @@ def on_open(evt):
         ws.send(play_black)
         ws.send(handicap)
         ws.send(overlap)
+        ws.send(str(show_scores))
     elif action == "join":
         document['status'].text = "Waiting for opponent to play"
         ws.send("join game")
