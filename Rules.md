@@ -34,21 +34,22 @@ where x is the stone itself, o shows the overlap region, and any stones played a
 
 8. **Scoring.** The final score of each player is the number of their stones currently on the board. The player with the most stones wins. This is equivalent to the [original scoring method](https://senseis.xmp.net/?StoneScoring) in go, rarely used today.
 
-9. **Handicaps.** The game may be played with a **handicap** of two or more stones. If so, the starting (black) player may make that many plays at the beginning of the game before the white player plays.
+9. **Handicaps.** The game may be played with a free **handicap** of two or more stones. If so, the starting (black) player may make that many plays at the beginning of the game before the white player plays.
 
 ## Rule Questions
 
-The best rules are not yet clear, so some rules may later be changed.
+The best rules are not yet clear. Below are some alternatives considered; some of these are options in the game.
 
 1. Should suicide be legal? (default: yes, option for no)
    * There doesn't seem to be a reason to make it illegal.
+
 2. Should it be legal to kill one's own groups (not connected to the stone played)? (currently: yes)
    * If so, should the group with the stone played die
       * before,
       * after, or
-      * at the same time as others of that player? (default: same time)
-
+      * at the same time as others of that player? (currently: same time)
     The current option seems the most logical and easiest to code.
+
 3. Should it be legal to play inside the overlap of one's own stones? (default: no, option for yes)
     * Pro:
         * it avoids the weird inability to connect stones
@@ -56,6 +57,7 @@ The best rules are not yet clear, so some rules may later be changed.
         * it doesn't solve the friendly-fire problem
         * it makes stone-counting ineffective
         * it feels a little weird
+
 4. How should kos work? (currently singleton recapture)
     * Singleton recapture: this is the best option. It's not standard in any version of go, but it's essentially the same as the (last-move) ko rule in ordinary go. A move is prohibited if the last play captured a single (opposing) stone, and the move would capture that stone and nothing else.
     * The ordinary (last-move) Japanese ko rule won't work, as kos might be captured at more than one space, so it wouldn't handle many repeated moves.
