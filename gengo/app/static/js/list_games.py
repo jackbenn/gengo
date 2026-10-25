@@ -32,7 +32,17 @@ def on_open(evt):
     ws.send("list games")
 
 
-ws = websocket.WebSocket(f"ws://{window.location.hostname}:8765")
+def websocket_url():
+    """Connect through nginx's /gengo/ws proxy, matching the page's protocol
+    (browsers block ws:// from an https:// page). A bare `flask run` on port
+    5000 has no proxy, so go straight to the game server there."""
+    if window.location.port == "5000":
+        return f"ws://{window.location.hostname}:8765"
+    proto = "wss" if window.location.protocol == "https:" else "ws"
+    return f"{proto}://{window.location.host}/gengo/ws"
+
+
+ws = websocket.WebSocket(websocket_url())
 ws.bind('open', on_open)
 ws.bind('message', on_message)
 print("Bound message/open functions to websocket")
