@@ -102,3 +102,7 @@ ENV/
 
 # vscode
 .vscode/
+
+# Claude Code: personal, never committed
+**/.claude/settings.local.json
+**/CLAUDE.local.md

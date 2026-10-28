@@ -1,6 +1,6 @@
 # Backlog — gengo
 
-Prefix: GENGO · Next ID: 4 · Schema: v1
+Prefix: GENGO · Next ID: 7 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
@@ -92,3 +92,47 @@ after their websocket drops and re-identify themselves as a player of their game
 which needs some notion of a player token. The unused `--database` option
 (postgres via `psycopg2`) is an older take on saving finished games; it could be
 removed or folded into this.
+
+## [GENGO-4] Add `## Getting started` to the README
+
+- **Status:** idea
+- **Priority:** unknown
+- **Size:** quick
+- **Depends on:** none
+- **Tags:** docs, baseline
+- **Related:** GENGO-5, META-6
+
+Found by project-init (2026-10-27). The README explains the game and how to run
+it, but has no `## Getting started` section (setup, run, test, what is not in
+the repo), so `PROJECTS.yaml` flags it `has_cold_start: false`. Run META-6's
+`repo-docs` skill to write it. The site deploy (Docker, nginx at `/gengo/`,
+the websocket at `/gengo/ws`) lives in `bennetto-infra`, and the section should
+say so.
+
+## [GENGO-5] README gives the wrong path for the command-line game
+
+- **Status:** idea
+- **Priority:** unknown
+- **Size:** quick
+- **Depends on:** none
+- **Tags:** docs, bug
+- **Related:** GENGO-4
+
+Found by project-init (2026-10-27). The README says to run `python gengo.py`
+"from this directory", but the file is at `gengo/src/gengo.py`. Check what
+actually works (module run, import paths) and fix the instructions. The web
+instructions mention ports 5000 and 8765, which describe local development,
+not the deployed site; check those too.
+
+## [GENGO-6] Tests cover very little
+
+- **Status:** idea
+- **Priority:** unknown
+- **Size:** multi
+- **Depends on:** none
+- **Tags:** test
+
+Found by project-init (2026-10-27). `pytest` passes, but there are only two
+tests, both in `gengo/test/test_gengo.py`. The game server
+(`gengo/server/`) and the Flask routes have none. That matters for GENGO-1 and
+GENGO-3, which change the client and the server.
