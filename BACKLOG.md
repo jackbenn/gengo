@@ -7,7 +7,7 @@ Prefix: GENGO · Next ID: 8 · Schema: v1
 - **Status:** idea
 - **Priority:** unknown
 - **Size:** session
-- **Depends on:** none
+- **Depends on:** GENGO-6
 - **Tags:** ui, stability
 - **Related:** GENGO-2
 
@@ -39,7 +39,16 @@ browser, but that is not confirmed.
 `brython_stdlib.js` bundle. If the upgrade is large, consider whether these two
 small scripts should just be JavaScript.
 
+**Browser smoke test (moved here from GENGO-6, 2026-10-31):** add an automated
+browser test, for example Playwright, that loads `/gengo/`, sees the game list,
+creates a game in one page, joins it from a second, and plays a few moves. It is
+the only test that runs the client code itself. Write it against the new Brython
+(or the JavaScript rewrite), not 3.6: headless Chrome was too slow with 3.6's
+IndexedDB cache to be usable. GENGO-6's protocol tests cover the server side of
+the same exchange.
+
 ### Acceptance criteria
+- [ ] An automated browser test creates, joins and plays a game against a local server, and runs in under a minute
 - [ ] `/gengo/` lists games and `/gengo/game` plays a full game in current Chrome, Firefox and Safari
 - [ ] No requests to `/gengo/static/brython/Lib/...` appear in the nginx log during normal loads
 - [ ] If "Loading…" recurs, the page shows an error rather than hanging silently
@@ -142,8 +151,8 @@ not the deployed site; check those too.
 
 ## [GENGO-6] Tests cover very little
 
-- **Status:** idea
-- **Priority:** unknown
+- **Status:** ready
+- **Priority:** P3
 - **Size:** multi
 - **Depends on:** none
 - **Tags:** test
@@ -152,6 +161,46 @@ Found by project-init (2026-10-27). `pytest` passes, but there are only two
 tests, both in `gengo/test/test_gengo.py`. The game server
 (`gengo/server/`) and the Flask routes have none. That matters for GENGO-1 and
 GENGO-3, which change the client and the server.
+
+**Scope (agreed 2026-10-31):** three layers, all under pytest. A browser test of
+the Brython client is not part of this item; it belongs to GENGO-1.
+
+1. **Websocket protocol.** Start the real game server on a free port and drive
+   two `websockets` clients through it. This pins the contract the client must
+   keep through GENGO-1: `"list games"`; `"new game"` + name + settings JSON;
+   `"join game"` + name; moves as `"x,y"` strings, `"pass"`, `"undo"`; and the
+   JSON board replies (`board`, `stones`, `pairs`, `is_my_turn`, `show_scores`,
+   `done`, `warning`). The same harness is what GENGO-2 and GENGO-3 need for
+   disconnect and restart tests. The module-level `games` and `options` dicts
+   must be reset between tests.
+2. **Flask routes.** With Flask's test client: `/gengo/` renders, `/gengo/new`
+   and `/gengo/join` redirect, and `/gengo/game` renders the `div#rules`
+   attributes that `board.py` reads, in the `"True"`/`"False"`/`"-"` forms the
+   server compares against.
+3. **Game rules** in `src/gengo.py`: ko, suicide (allowed and not),
+   `play_in_own_overlap`, handicap, the three-pass end, and `create_replay`.
+
+**Undo is meant to work this way:** only the player to move can send `"undo"`,
+and it takes back the opponent's last move. A player cannot undo their own move
+unless the opponent agrees, so the opponent's undo is that agreement. Tests
+should assert this.
+
+**Bugs the tests find:** fix small ones as part of this item. For a larger one,
+open a new backlog item, mark the test `xfail` with that item's ID in the
+reason, and note it here. Already visible:
+- An unknown `overlap` setting leaves `overlap_lists` unset, so `run_game`
+  raises `UnboundLocalError`.
+- `/gengo/game` without `board_size` raises a 500 (`int(None)`).
+- Joining a game that does not exist does nothing and the client hangs (the
+  abandoned-game case is GENGO-2).
+
+### Acceptance criteria
+- [ ] Protocol tests play a full game between two clients against the real server, including a pass, an undo, an invalid move (warning sent only to the mover) and the three-pass end
+- [ ] Protocol tests cover "list games" before and after a game is created and joined
+- [ ] Route tests cover `/gengo/`, the two redirects, and `/gengo/game` for both `action=new` and `action=join`
+- [ ] Rule tests cover ko, suicide, `play_in_own_overlap`, handicap, the three-pass end and undo via `create_replay`
+- [ ] Every bug found is either fixed or has its own backlog item and an `xfail` test naming it
+- [ ] `pytest` runs all of it from the repo root in a few seconds, with no network beyond localhost
 
 ## [GENGO-7] Local web play works only on port 5000, which macOS blocks
 
