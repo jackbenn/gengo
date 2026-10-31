@@ -157,6 +157,7 @@ not the deployed site; check those too.
 - **Depends on:** none
 - **Tags:** test
 - **Related:** GENGO-8
+- **Commits:** 9125fee
 
 Found by project-init (2026-10-27). `pytest` passes, but there are only two
 tests, both in `gengo/test/test_gengo.py`. The game server
