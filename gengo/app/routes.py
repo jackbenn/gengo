@@ -1,8 +1,11 @@
-from flask import render_template, request
+from flask import abort, render_template, request
 from flask import Flask
 import os
 #import app
 app = Flask(__name__)
+
+# Also enforced by the game server (server.MAX_BOARD_SIZE).
+MAX_BOARD_SIZE = 51
 
 @app.route('/gengo/static/<path:pathname>')
 def gengo_static(pathname):
@@ -23,7 +26,12 @@ def redirect_to_index():
 @app.route('/gengo/game', methods=['GET'])
 def game():
     game_name = request.args.get('game_name')
-    board_size = int(request.args.get('board_size'))
+    try:
+        board_size = int(request.args.get('board_size'))
+    except (TypeError, ValueError):
+        abort(400, "board_size must be a whole number")
+    if not 1 <= board_size <= MAX_BOARD_SIZE:
+        abort(400, f"board_size must be from 1 to {MAX_BOARD_SIZE}")
     action = request.args.get('action')
 
     allow_suicide = "-"

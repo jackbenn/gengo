@@ -1,6 +1,6 @@
 # Backlog — gengo
 
-Prefix: GENGO · Next ID: 8 · Schema: v1
+Prefix: GENGO · Next ID: 9 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
@@ -151,11 +151,12 @@ not the deployed site; check those too.
 
 ## [GENGO-6] Tests cover very little
 
-- **Status:** ready
+- **Status:** done
 - **Priority:** P3
 - **Size:** multi
 - **Depends on:** none
 - **Tags:** test
+- **Related:** GENGO-8
 
 Found by project-init (2026-10-27). `pytest` passes, but there are only two
 tests, both in `gengo/test/test_gengo.py`. The game server
@@ -195,12 +196,31 @@ reason, and note it here. Already visible:
   abandoned-game case is GENGO-2).
 
 ### Acceptance criteria
-- [ ] Protocol tests play a full game between two clients against the real server, including a pass, an undo, an invalid move (warning sent only to the mover) and the three-pass end
-- [ ] Protocol tests cover "list games" before and after a game is created and joined
-- [ ] Route tests cover `/gengo/`, the two redirects, and `/gengo/game` for both `action=new` and `action=join`
-- [ ] Rule tests cover ko, suicide, `play_in_own_overlap`, handicap, the three-pass end and undo via `create_replay`
-- [ ] Every bug found is either fixed or has its own backlog item and an `xfail` test naming it
-- [ ] `pytest` runs all of it from the repo root in a few seconds, with no network beyond localhost
+- [x] Protocol tests play a full game between two clients against the real server, including a pass, an undo, an invalid move (warning sent only to the mover) and the three-pass end
+- [x] Protocol tests cover "list games" before and after a game is created and joined
+- [x] Route tests cover `/gengo/`, the two redirects, and `/gengo/game` for both `action=new` and `action=join`
+- [x] Rule tests cover ko, suicide, `play_in_own_overlap`, handicap, the three-pass end and undo via `create_replay`
+- [x] Every bug found is either fixed or has its own backlog item and an `xfail` test naming it
+- [x] `pytest` runs all of it from the repo root in a few seconds, with no network beyond localhost
+
+### Notes
+- 2026-10-31: Done. 45 tests pass and 3 are `xfail`, in about 5 s
+  (`test_server.py`, `test_routes.py`, plus rule tests added to
+  `test_gengo.py`). Server tests run the real server on a free localhost port
+  in a background thread (`conftest.py`) and use the `websockets` sync client.
+  The "full game" criterion is met across several tests rather than one long
+  game. Fixed here: the three bugs listed above (unknown `overlap` now closes
+  the connection with code 1008 and drops the game; a bad `board_size` is a
+  400); malformed or off-board moves, which crashed the game task, or for a
+  negative coordinate wrapped round the board, now get a warning; quotes on the
+  `div#rules` attributes, which broke on a game name with a space and let a
+  crafted name inject attributes; and after the third pass the server no
+  longer prompts the next player, which had replaced "Game complete" with
+  "Click on the board to move". The join/new/started-game hangs are GENGO-8,
+  with an `xfail` test each.
+- 2026-10-31: Board size capped at 51 (Jack's choice), in both `routes.py` (400)
+  and the game server (closes with 1008), so a crafted request cannot make the
+  server build a huge board.
 
 ## [GENGO-7] Local web play works only on port 5000, which macOS blocks
 
@@ -225,3 +245,30 @@ local port works.
 ### Acceptance criteria
 - [ ] A local game can be played with Flask on a port other than 5000
 - [ ] The deployed site still connects through `/gengo/ws`
+
+## [GENGO-8] Bad "new game" and "join game" requests hang instead of getting an error
+
+- **Status:** idea
+- **Priority:** unknown
+- **Size:** session
+- **Depends on:** none
+- **Tags:** server, ui, bug
+- **Related:** GENGO-2, GENGO-6
+
+The websocket protocol has no error reply, so the server silently ignores a
+request it cannot serve, and the page waits forever on "Waiting for opponent":
+
+- "join game" for a name not in `games` does nothing.
+- "new game" with a name already in `games` does nothing.
+- "join game" for a game that has already started puts the connection on the
+  game's queue, which nobody reads again.
+
+Found by GENGO-6 (2026-10-31). Each case has an `xfail` test in
+`gengo/test/test_server.py` that expects a JSON message with an `error` key;
+the reply format is a suggestion, not settled. Fixing it needs both the server
+and `board.py` (show the error, link back to `/gengo/`), so it fits with
+GENGO-1 or with GENGO-2, whose abandoned-game case is the same hang.
+
+### Acceptance criteria
+- [ ] Each of the three cases gets an error reply, and the page shows it
+- [ ] The three `xfail` tests pass with the marks removed

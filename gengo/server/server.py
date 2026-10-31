@@ -14,6 +14,36 @@ from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 games = {}
 options = {}
 
+# Also enforced by the web app (routes.MAX_BOARD_SIZE).
+MAX_BOARD_SIZE = 51
+
+
+# The overlap and neighbour regions for each choice of "overlap" on the
+# new-game form, as offsets from a stone (see Rules).
+OVERLAPS = {
+    "standard": ([(0, 0), (1, 0), (1, 1)],
+                 [(2, 0), (2, 1)]),
+    "go": ([(0, 0)],
+           [(1, 0)]),
+    "large-n": ([(0, 0), (1, 0), (1, 1)],
+                [(2, 0), (2, 1), (2, 2), (3, 0), (3, 1)]),
+    "large-o": ([(0, 0), (1, 0), (1, 1), (2, 0), (2, 1)],
+                [(2, 2), (3, 0), (3, 1), (3, 2)]),
+}
+
+
+def parse_move(text, board_size):
+    """Turn a move sent by a client ("x,y") into a coordinate tuple.
+    Raises InvalidMove for anything that is not a point on the board."""
+    try:
+        move = ast.literal_eval(text)
+    except (ValueError, SyntaxError):
+        raise InvalidMove(f"Can't read move {text!r}")
+    if not (isinstance(move, tuple) and len(move) == 2 and
+            all(type(c) is int and 0 <= c < board_size for c in move)):
+        raise InvalidMove(f"{text!r} is not a point on the board")
+    return move
+
 
 def get_game_data(board) -> Dict:
     '''Return list of lists of colors to paint on the server.
@@ -33,7 +63,6 @@ async def run_game(game_name):
 
     settings = json.loads(await websocket1.recv())
     board_size = int(settings['board_size'])
-    games[game_name]['board_size'] = board_size
     allow_suicide = settings['allow_suicide'] == "True"
     play_in_own_overlap = settings['play_in_own_overlap'] == "True"
     play_black = settings['play_black'] == "True"
@@ -41,18 +70,17 @@ async def run_game(game_name):
     handicap = int(handicap) if handicap.isdigit() else 1
     overlap = settings['overlap']
     show_scores = settings['show_scores'] == "True"
-    if overlap == "standard":
-        overlap_lists = ([(0, 0), (1, 0), (1, 1)],
-                         [(2, 0), (2, 1)])
-    elif overlap == "go":
-        overlap_lists = ([(0, 0)],
-                         [(1, 0)])
-    elif overlap == "large-n":
-        overlap_lists = ([(0, 0), (1, 0), (1, 1)],
-                         [(2, 0), (2, 1), (2, 2), (3, 0), (3, 1)])
-    elif overlap == "large-o":
-        overlap_lists = ([(0, 0), (1, 0), (1, 1), (2, 0), (2, 1)],
-                         [(2, 2), (3, 0), (3, 1), (3, 2)])
+    problem = None
+    if overlap not in OVERLAPS:
+        problem = f"unknown overlap {overlap!r}"
+    elif not 1 <= board_size <= MAX_BOARD_SIZE:
+        problem = f"board_size must be from 1 to {MAX_BOARD_SIZE}"
+    if problem:
+        logging.warning(f"{problem}; dropping game {game_name}")
+        del games[game_name]
+        await websocket1.close(1008, problem)
+        return
+    overlap_lists = tuple(list(region) for region in OVERLAPS[overlap])
 
     logging.info(f"creating a board of size {board_size}")
     logging.info(f"allow_suicide {allow_suicide}")
@@ -106,13 +134,21 @@ async def run_game(game_name):
         elif move == "undo":
             game = game.create_replay()
         else:
-            move = ast.literal_eval(move)
             try:
-                game.move(move)
+                move = parse_move(move, board_size)
             except InvalidMove as e:
+                # nothing was played, so there is nothing to take back
                 logging.warning(e)
                 warning = e.message
-                game = game.create_replay()
+            else:
+                try:
+                    game.move(move)
+                except InvalidMove as e:
+                    # the move was recorded and partly played; replay
+                    # the game without it
+                    logging.warning(e)
+                    warning = e.message
+                    game = game.create_replay()
         logging.info(game)
 
         # third, send the results of the move to both players
@@ -134,6 +170,9 @@ async def run_game(game_name):
                 player_data['warning'] = warning
             logging.info(f">json to player {i}")
             await ws.send(json.dumps(player_data))
+
+        if game.is_done:
+            return
 
 
 async def get_connection(websocket):
