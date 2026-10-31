@@ -1,6 +1,6 @@
 # Backlog — gengo
 
-Prefix: GENGO · Next ID: 7 · Schema: v1
+Prefix: GENGO · Next ID: 8 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
@@ -93,9 +93,19 @@ which needs some notion of a player token. The unused `--database` option
 (postgres via `psycopg2`) is an older take on saving finished games; it could be
 removed or folded into this.
 
+### Notes
+- 2026-10-31: What `--database` does now (found by repo-docs): only when that
+  flag is passed, and only when a game ends, `Game.save` writes the game and its
+  moves to a local Postgres database `gengo` (`sql/create_tables.sql`).
+  `Game.load` is a stub (a SELECT whose result is discarded) and nothing calls
+  it, so no game is ever read back. Production passes no `--database` and has
+  no Postgres. Added in 2019 as "untested". For a restart it would need saving
+  per move and loading on start; the schema (game, move with a sequence) could
+  serve as the store, or a file on a volume could replace it.
+
 ## [GENGO-4] Add `## Getting started` to the README
 
-- **Status:** idea
+- **Status:** done
 - **Priority:** unknown
 - **Size:** quick
 - **Depends on:** none
@@ -109,9 +119,12 @@ the repo), so `PROJECTS.yaml` flags it `has_cold_start: false`. Run META-6's
 the websocket at `/gengo/ws`) lives in `bennetto-infra`, and the section should
 say so.
 
+### Notes
+- 2026-10-31: Done by repo-docs: `## Usage` became `## Getting started`, with Setup and Not in this repo added (the latter says the deploy lives in bennetto-infra); verified on Python 3.8 and 3.10.
+
 ## [GENGO-5] README gives the wrong path for the command-line game
 
-- **Status:** idea
+- **Status:** done
 - **Priority:** unknown
 - **Size:** quick
 - **Depends on:** none
@@ -123,6 +136,9 @@ Found by project-init (2026-10-27). The README says to run `python gengo.py`
 actually works (module run, import paths) and fix the instructions. The web
 instructions mention ports 5000 and 8765, which describe local development,
 not the deployed site; check those too.
+
+### Notes
+- 2026-10-31: Fixed by repo-docs: `python gengo/src/gengo.py`; the start page is `/gengo/` (`/gengo/new` and `/gengo/join` only redirect there). The ports 5000 and 8765 describe local development and are kept as such; on macOS 5000 needs AirPlay Receiver off (GENGO-7).
 
 ## [GENGO-6] Tests cover very little
 
@@ -136,3 +152,27 @@ Found by project-init (2026-10-27). `pytest` passes, but there are only two
 tests, both in `gengo/test/test_gengo.py`. The game server
 (`gengo/server/`) and the Flask routes have none. That matters for GENGO-1 and
 GENGO-3, which change the client and the server.
+
+## [GENGO-7] Local web play works only on port 5000, which macOS blocks
+
+- **Status:** idea
+- **Priority:** unknown
+- **Size:** quick
+- **Depends on:** none
+- **Tags:** ui, bug
+- **Related:** GENGO-4
+
+`websocket_url()` in `gengo/app/static/js/board.py` and `list_games.py` goes
+straight to the game server (`ws://host:8765`) only when the page's port is
+5000, and otherwise to `/gengo/ws`, which only nginx serves. On macOS port 5000
+is held by AirPlay Receiver, so `flask run` fails there, and `flask run --port
+5050` serves the pages but the board cannot reach the game server. Found by
+repo-docs (2026-10-31).
+
+Likely fix: decide from the absence of a proxy rather than the port number, for
+example a template variable or config value giving the websocket URL, so any
+local port works.
+
+### Acceptance criteria
+- [ ] A local game can be played with Flask on a port other than 5000
+- [ ] The deployed site still connects through `/gengo/ws`
