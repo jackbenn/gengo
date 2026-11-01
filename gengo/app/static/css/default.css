@@ -7,6 +7,13 @@ rect.overlap {
     fill: grey;
 }
 
+/* Grid lines and stones are drawn over the squares; let clicks through to
+   the square underneath, whose id is the move board.py sends. */
+#svg line,
+#stones {
+    pointer-events: none;
+}
+
 /* Base */
 * {
     box-sizing: border-box;
@@ -214,4 +221,9 @@ td:first-child {
 .site-header nav a {
     font-size: 0.95em;
     margin-right: 12px;
+}
+
+/* A connection problem, in place of the game list or the game status */
+.error {
+    color: #a33;
 }

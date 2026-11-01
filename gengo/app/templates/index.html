@@ -2,11 +2,11 @@
 <head>
     <title>Gengo</title>
     <meta charset="utf-8"/>
-    <script src="/gengo/static/brython/brython.js"></script>
-    <script src="/gengo/static/brython/brython_stdlib.js"></script>
+    <script src="/gengo/static/brython/brython.js?v={{ brython_version }}"></script>
+    <script src="/gengo/static/brython/brython_stdlib.js?v={{ brython_version }}"></script>
     <link href="/gengo/static/css/default.css" rel="stylesheet" type="text/css"/>
 </head>
-<body onload="brython(1)">
+<body onload="brython({debug: 1})" data-ws-url="{{ ws_url }}">
     <script src="/gengo/static/js/list_games.py" type="text/python"></script>
 
     <div class="header-image-container">
@@ -71,5 +71,17 @@
             </section>
         </div>
     </div>
+    <script>
+        // If Brython or the websocket never gets going, say so rather than
+        // leaving the page on "Loading..." for ever. The Python scripts
+        // replace that text as soon as they hear from the game server.
+        setTimeout(function () {
+            var el = document.getElementById("games");
+            if (el && el.textContent.indexOf("Loading") === 0) {
+                el.innerHTML = "Couldn&rsquo;t load the game list. Reload the page to try again.";
+                el.classList.add("error");
+            }
+        }, 10000);
+    </script>
 </body>
 </html>

@@ -7,6 +7,24 @@ app = Flask(__name__)
 # Also enforced by the game server (server.MAX_BOARD_SIZE).
 MAX_BOARD_SIZE = 51
 
+# The Brython release in static/brython, added to its URLs so that browsers
+# fetch the new files after an upgrade rather than mixing cached versions.
+BRYTHON_VERSION = "3.14.3"
+
+
+@app.context_processor
+def page_settings():
+    """Values every page needs.
+
+    ws_url is where the browser opens its websocket to the game server. Empty
+    (the default) means through the site's own /gengo/ws proxy, as deployed
+    behind nginx. Set GENGO_WS_URL to reach the game server directly, as in
+    local development: GENGO_WS_URL=ws://localhost:8765.
+    """
+    return {'brython_version': BRYTHON_VERSION,
+            'ws_url': os.environ.get('GENGO_WS_URL', '')}
+
+
 @app.route('/gengo/static/<path:pathname>')
 def gengo_static(pathname):
     '''Override default static method'''

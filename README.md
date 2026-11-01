@@ -49,19 +49,32 @@ To start the web server: from the `gengo/app` directory, do
 
 ```
 export FLASK_APP=routes.py
-flask run --host=0.0.0.0
+export GENGO_WS_URL=ws://localhost:8765
+flask run --port 5050
 ```
 
 (for a development server that reloads on changes, add `--debug`).
-This starts a server on port 5000. Point a browser to http://localhost:5000/gengo/ and start a new game, entering its name, the board size and any other options. Point a second browser to the same page and join that game from the list.
+Point a browser to http://localhost:5050/gengo/ and start a new game, entering its name, the board size and any other options. Point a second browser to the same page and join that game from the list.
 
-On macOS, port 5000 is taken by AirPlay Receiver and `flask run` fails with "Address already in use"; turn it off in System Settings (search for AirPlay Receiver). Another port will serve the pages, but the board then cannot reach the game server (GENGO-7).
+`GENGO_WS_URL` tells the pages where the game server is. Without it they connect through `/gengo/ws` on the page's own host, which only the deployed nginx serves. Any free port works for Flask; avoid 5000 on macOS, where AirPlay Receiver holds it.
 
-To connect to the web server from a client on another machine, ensure the firewall allows access to ports 5000 and 8765 (for websocket connections to the game server).
+To play from another machine, run Flask with `--host=0.0.0.0`, set `GENGO_WS_URL` to `ws://<this machine's address>:8765`, and make sure the firewall allows both ports.
 
 ### Tests
 
-To run tests, do `pytest` from this directory. pytest is not in `requirements.txt`; install it with `pip install pytest`.
+```
+pip install -r requirements-dev.txt
+pytest
+```
+
+runs the rule, route and game-server tests in a few seconds. The browser tests, which drive the real pages and Brython client against a local game server in Chromium and Firefox, are opt-in:
+
+```
+python -m playwright install chromium firefox
+pytest --browser-tests
+```
+
+`GENGO_BROWSERS` picks the browsers (default `chromium,firefox`). Playwright's WebKit hangs on macOS 14, so Safari is checked by hand.
 
 ### Not in this repo
 

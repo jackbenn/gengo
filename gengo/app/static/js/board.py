@@ -1,7 +1,6 @@
 from browser import document, alert, svg
 from browser import websocket
 from browser import window
-import browser
 
 import json
 import logging
@@ -9,6 +8,7 @@ game_name = None
 board_size = None
 is_my_turn = None
 show_scores = False
+game_over = False
 
 # for testing
 # logging.basicConfig(level=logging.DEBUG)
@@ -30,7 +30,7 @@ def set_button_enabled(btn_id, enabled):
 def on_message(evt):
     # board = ast.literal_eval(evt.data)
     # need to fix, but ast not loaded; should parse manually
-    global is_my_turn, show_scores
+    global is_my_turn, show_scores, game_over
     data = json.loads(evt.data)
     logging.info(f"Got message with data {data}")
     board = data['board']
@@ -83,6 +83,7 @@ def on_message(evt):
         document['black-stone-score'].text = data['stone_scores'][0]
         document['white-stone-score'].text = data['stone_scores'][1]
     if 'done' in data:
+        game_over = True
         document['status'].text = "Game complete"
 
     if 'warning' in data:
@@ -91,9 +92,18 @@ def on_message(evt):
 
 def on_click(ev):
     global is_my_turn
-    if is_my_turn:
+    if is_my_turn and ev.target.id:
         ws.send(ev.target.id)
         is_my_turn = False
+
+
+def on_close(evt):
+    if not game_over:
+        document['status'].text = ("Lost the connection to the game server. "
+                                   "Reload the page to try again.")
+        document['status'].classList.add('error')
+        set_button_enabled('pass', False)
+        set_button_enabled('undo', False)
 
 
 def on_open(evt):
@@ -112,7 +122,7 @@ def on_open(evt):
     show_scores = div_rules.attrs['show_scores'] == 'True'
     action = div_rules.attrs['action']
 
-    logging.info("action = ", action)
+    logging.info(f"action = {action}")
     if action == "new":
         document['status'].text = "Waiting for opponent to join"
         ws.send("new game")
@@ -144,11 +154,13 @@ def on_open(evt):
 
 
 def websocket_url():
-    """Connect through nginx's /gengo/ws proxy, matching the page's protocol
-    (browsers block ws:// from an https:// page). A bare `flask run` on port
-    5000 has no proxy, so go straight to the game server there."""
-    if window.location.port == "5000":
-        return f"ws://{window.location.hostname}:8765"
+    """The page's data-ws-url if the app sets one (local development, where
+    the game server is reached directly); otherwise nginx's /gengo/ws proxy,
+    matching the page's protocol (browsers block ws:// from an https://
+    page)."""
+    url = document.body.attrs.get('data-ws-url', '')
+    if url:
+        return url
     proto = "wss" if window.location.protocol == "https:" else "ws"
     return f"{proto}://{window.location.host}/gengo/ws"
 
@@ -156,5 +168,6 @@ def websocket_url():
 ws = websocket.WebSocket(websocket_url())
 ws.bind('open', on_open)
 ws.bind('message', on_message)
+ws.bind('close', on_close)
 logging.info("Bound message/open functions to websocket")
 logging.info(ws)

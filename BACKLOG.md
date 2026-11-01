@@ -4,12 +4,12 @@ Prefix: GENGO · Next ID: 9 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
-- **Status:** idea
+- **Status:** active
 - **Priority:** unknown
 - **Size:** session
 - **Depends on:** GENGO-6
 - **Tags:** ui, stability
-- **Related:** GENGO-2
+- **Related:** GENGO-2, GENGO-7
 
 The client runs Brython 3.6.2 (`gengo/app/static/brython/`, last touched in
 2018) in current Chrome (153+). It is the main suspect for an intermittent
@@ -48,10 +48,37 @@ IndexedDB cache to be usable. GENGO-6's protocol tests cover the server side of
 the same exchange.
 
 ### Acceptance criteria
-- [ ] An automated browser test creates, joins and plays a game against a local server, and runs in under a minute
-- [ ] `/gengo/` lists games and `/gengo/game` plays a full game in current Chrome, Firefox and Safari
+- [x] An automated browser test creates, joins and plays a game against a local server, and runs in under a minute
+- [x] `/gengo/` lists games and `/gengo/game` plays a full game in current Chrome, Firefox and Safari
 - [ ] No requests to `/gengo/static/brython/Lib/...` appear in the nginx log during normal loads
-- [ ] If "Loading…" recurs, the page shows an error rather than hanging silently
+- [x] If "Loading…" recurs, the page shows an error rather than hanging silently
+
+### Notes
+- 2026-10-31: Upgraded to Brython 3.14.3 (npm tarball, sha512 checked; 3.15.0
+  was three weeks old). The scripts needed almost nothing: `brython(1)` became
+  `brython({debug: 1})`, and `browser.websocket`, `browser.html`, `svg` and `<=`
+  all still work, so a JavaScript rewrite is not needed. Script URLs carry
+  `?v=3.14.3` so a cached 3.6 `brython.js` is not mixed with the new stdlib.
+  Headless Chromium now loads `/gengo/` and gets the list in about 2 s, against
+  80+ s with 3.6.
+- 2026-10-31: Errors are now shown: the list or the game status says when the
+  websocket closes early, and a plain-JavaScript timer replaces "Loading…" or
+  "Connecting…" with an error after 10 s if Brython never starts. Also fixed:
+  clicks on a grid line or a stone sent an empty move (which crashed the game
+  before GENGO-6) because they landed on the line or stone rather than the
+  square; join links now URL-encode the game name. Removed the unused
+  `join.html` and `new.html` templates.
+- 2026-10-31: `gengo/test/test_browser.py`, run with `pytest --browser-tests`:
+  a full game (create, join, moves, a click on a stone, undo, an invalid move,
+  three passes), the list's error with no game server, and the game page's
+  error when the server goes away; it also asserts no `/static/brython/Lib/`
+  requests and no script errors. About 20 s for Chromium and Firefox together.
+  Playwright's WebKit hangs opening any page on macOS 14, so it is off by
+  default (`GENGO_BROWSERS`), and Safari needs a check by hand.
+- 2026-11-01: Jack played a game in Safari; it works.
+- Left to close: after a deploy, check the nginx log for
+  `/gengo/static/brython/Lib/` requests.
+
 
 ## [GENGO-2] Games whose creator has left stay listed and hang anyone who joins
 
@@ -225,12 +252,12 @@ reason, and note it here. Already visible:
 
 ## [GENGO-7] Local web play works only on port 5000, which macOS blocks
 
-- **Status:** idea
+- **Status:** done
 - **Priority:** unknown
 - **Size:** quick
 - **Depends on:** none
 - **Tags:** ui, bug
-- **Related:** GENGO-4
+- **Related:** GENGO-4, GENGO-1
 
 `websocket_url()` in `gengo/app/static/js/board.py` and `list_games.py` goes
 straight to the game server (`ws://host:8765`) only when the page's port is
@@ -244,8 +271,16 @@ example a template variable or config value giving the websocket URL, so any
 local port works.
 
 ### Acceptance criteria
-- [ ] A local game can be played with Flask on a port other than 5000
+- [x] A local game can be played with Flask on a port other than 5000
 - [ ] The deployed site still connects through `/gengo/ws`
+
+### Notes
+- 2026-10-31: Done as part of GENGO-1, whose browser tests needed it. The app
+  passes `GENGO_WS_URL` to the pages as `data-ws-url` on `<body>`; empty (the
+  default, as deployed) means `/gengo/ws` on the page's host. README updated.
+  The local steps were run as written with Flask on 5050. The deployed-site
+  criterion stays open until the next deploy.
+
 
 ## [GENGO-8] Bad "new game" and "join game" requests hang instead of getting an error
 
