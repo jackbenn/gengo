@@ -327,12 +327,13 @@ GENGO-1 or with GENGO-2, whose abandoned-game case is the same hang.
 
 ## [GENGO-9] Pin the Python packages
 
-- **Status:** active
+- **Status:** done
 - **Priority:** unknown
 - **Size:** quick
 - **Depends on:** none
 - **Tags:** server, stability
 - **Related:** INFRA-1, INFRA-5, INFRA-9
+- **Commits:** 3a5e6ff
 
 `requirements.txt` names numpy, psycopg2-binary, websockets and Flask with no
 versions, and the `gengo-web` image adds gunicorn the same way. Every build
@@ -352,7 +353,7 @@ deliberate, simple step, and say how in the README. gunicorn is installed by
 `docker/gengo-web.Dockerfile` in bennetto-infra, so pinning it is a change there.
 
 ### Acceptance criteria
-- [ ] Every package installed in both gengo images is pinned to an exact version (needs the gunicorn pin in bennetto-infra committed)
+- [x] Every package installed in both gengo images is pinned to an exact version
 - [x] The pinned versions match what production ran before the change
 - [x] Two builds with the build cache cleared in between give the same packages
 - [x] The README says how to upgrade the pins
@@ -368,4 +369,8 @@ deliberate, simple step, and say how in the README. gunicorn is installed by
   browser tests included. gunicorn pinned in bennetto-infra's
   `docker/gengo-web.Dockerfile`, uncommitted. Deploying this should change no
   version on the server.
+- 2026-11-01: Deployed (gengo 3a5e6ff, infra 19717c7 for gunicorn, pointer
+  8d33bd6). Only `gengo-web` and `gengo-ws` were recreated, and `pip freeze`
+  in each is unchanged from before. `update_requirements.sh` is still
+  untried; run it the next time Docker is up locally.
 
