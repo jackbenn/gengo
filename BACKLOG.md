@@ -4,7 +4,7 @@ Prefix: GENGO · Next ID: 9 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
-- **Status:** active
+- **Status:** done
 - **Priority:** unknown
 - **Size:** session
 - **Depends on:** GENGO-6
@@ -50,7 +50,7 @@ the same exchange.
 ### Acceptance criteria
 - [x] An automated browser test creates, joins and plays a game against a local server, and runs in under a minute
 - [x] `/gengo/` lists games and `/gengo/game` plays a full game in current Chrome, Firefox and Safari
-- [ ] No requests to `/gengo/static/brython/Lib/...` appear in the nginx log during normal loads
+- [x] No requests to `/gengo/static/brython/Lib/...` appear in the nginx log during normal loads
 - [x] If "Loading…" recurs, the page shows an error rather than hanging silently
 
 ### Notes
@@ -76,8 +76,10 @@ the same exchange.
   Playwright's WebKit hangs opening any page on macOS 14, so it is off by
   default (`GENGO_BROWSERS`), and Safari needs a check by hand.
 - 2026-11-01: Jack played a game in Safari; it works.
-- Left to close: after a deploy, check the nginx log for
-  `/gengo/static/brython/Lib/` requests.
+- 2026-11-01: Deployed (bc0b103, then 1a60dcd). The nginx log since the
+  Brython deploy has no `/gengo/static/brython/Lib/` requests; six loads of
+  the live `/gengo/` in Chromium and Firefox got the list in 1.1-1.8 s with
+  no script errors. Done.
 
 
 ## [GENGO-2] Games whose creator has left stay listed and hang anyone who joins
@@ -272,7 +274,7 @@ local port works.
 
 ### Acceptance criteria
 - [x] A local game can be played with Flask on a port other than 5000
-- [ ] The deployed site still connects through `/gengo/ws`
+- [x] The deployed site still connects through `/gengo/ws`
 
 ### Notes
 - 2026-10-31: Done as part of GENGO-1, whose browser tests needed it. The app
@@ -280,7 +282,7 @@ local port works.
   default, as deployed) means `/gengo/ws` on the page's host. README updated.
   The local steps were run as written with Flask on 5050. The deployed-site
   criterion stays open until the next deploy.
-
+- 2026-11-01: Deployed; the live pages connect through `/gengo/ws`.
 
 ## [GENGO-8] Bad "new game" and "join game" requests hang instead of getting an error
 
@@ -320,4 +322,5 @@ GENGO-1 or with GENGO-2, whose abandoned-game case is the same hang.
   since games are never removed (GENGO-2). The `xfail` marks are gone; new
   server tests cover the race, name reuse and unknown actions, and two
   browser tests cover the page.
-
+- 2026-11-01: Deployed in 1a60dcd; a live "join game" for a missing name
+  gets the error reply over `wss://bennetto.com/gengo/ws`.
