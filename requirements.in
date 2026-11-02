@@ -1,0 +1,7 @@
+# The packages gengo uses directly, unpinned. requirements.txt pins these and
+# everything they pull in; the Docker images and local setup install from it.
+# To upgrade, see "Upgrading packages" in the README.
+numpy
+psycopg2-binary
+websockets
+Flask

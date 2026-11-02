@@ -1,4 +1,13 @@
-numpy
-psycopg2-binary
-websockets
-Flask
+# Exact versions for Python 3.11, as run in production on 2026-11-01.
+# Edit requirements.in, not this file, and re-pin with update_requirements.sh.
+blinker==1.9.0
+click==8.5.0
+Flask==3.1.3
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+numpy==2.4.6
+packaging==26.3
+psycopg2-binary==2.9.13
+websockets==17.4
+Werkzeug==3.1.9

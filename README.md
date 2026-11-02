@@ -76,6 +76,16 @@ pytest --browser-tests
 
 `GENGO_BROWSERS` picks the browsers (default `chromium,firefox`). Playwright's WebKit hangs on macOS 14, so Safari is checked by hand.
 
+### Upgrading packages
+
+`requirements.txt` pins every package to an exact version, so each build of the Docker images installs the same thing. The packages gengo uses directly are listed, unpinned, in `requirements.in`. To move to newer versions, or after editing `requirements.in`, start Docker and run
+
+```
+./update_requirements.sh
+```
+
+which resolves `requirements.in` in the `python:3.11-slim` image the deployed containers use and rewrites `requirements.txt`. Review the diff, run the tests (including `--browser-tests`), and commit. gunicorn, which only the deployed web container uses, is pinned separately in `docker/gengo-web.Dockerfile` in bennetto-infra.
+
 ### Not in this repo
 
 Nothing is needed to play. The `--database` option (on `start_server.py` and the command-line game) saves finished games to a local Postgres database named `gengo`, created from `sql/create_tables.sql`; it is untested, games are never read back, and the deployed site does not use it (see GENGO-3).

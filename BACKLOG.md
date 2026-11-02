@@ -1,6 +1,6 @@
 # Backlog — gengo
 
-Prefix: GENGO · Next ID: 9 · Schema: v1
+Prefix: GENGO · Next ID: 10 · Schema: v1
 
 ## [GENGO-1] Upgrade Brython
 
@@ -324,3 +324,48 @@ GENGO-1 or with GENGO-2, whose abandoned-game case is the same hang.
   browser tests cover the page.
 - 2026-11-01: Deployed in 1a60dcd; a live "join game" for a missing name
   gets the error reply over `wss://bennetto.com/gengo/ws`.
+
+## [GENGO-9] Pin the Python packages
+
+- **Status:** active
+- **Priority:** unknown
+- **Size:** quick
+- **Depends on:** none
+- **Tags:** server, stability
+- **Related:** INFRA-1, INFRA-5, INFRA-9
+
+`requirements.txt` names numpy, psycopg2-binary, websockets and Flask with no
+versions, and the `gengo-web` image adds gunicorn the same way. Every build
+that re-runs `pip install` can get different versions, so a new release can
+reach the site on an unrelated deploy, or break it. Locally, websockets went
+from 16 to 17 between two installs during GENGO-6.
+
+Pinning does not stop a rebuild from restarting a container: a re-run `pip
+install` writes new files, so the image changes even when the versions do
+not. That is what happened to `gengo-web` on 2026-11-01 after the build cache
+was trimmed (INFRA-1); keeping the cache (INFRA-5) is what prevents it.
+
+**What to do:** pin every package, including the ones Flask and the rest pull
+in, to the versions the deployed images run now, so pinning changes nothing in
+production. Keep the unpinned top-level list somewhere so upgrading stays a
+deliberate, simple step, and say how in the README. gunicorn is installed by
+`docker/gengo-web.Dockerfile` in bennetto-infra, so pinning it is a change there.
+
+### Acceptance criteria
+- [ ] Every package installed in both gengo images is pinned to an exact version (needs the gunicorn pin in bennetto-infra committed)
+- [x] The pinned versions match what production ran before the change
+- [x] Two builds with the build cache cleared in between give the same packages
+- [x] The README says how to upgrade the pins
+
+### Notes
+- 2026-11-01: `requirements.txt` now holds the exact `pip freeze` of the
+  running `gengo-ws` container (Python 3.11.18; `gengo-web` has the same plus
+  gunicorn 26.2.0), and `requirements.in` the four direct packages unpinned.
+  `update_requirements.sh` re-pins inside `python:3.11-slim`; not yet run,
+  since Docker was not running locally. Two clean `--no-cache-dir` installs
+  of the pins gave identical package sets (local Python 3.12, standing in for
+  a Docker build with the cache cleared), and all 65 tests pass on them,
+  browser tests included. gunicorn pinned in bennetto-infra's
+  `docker/gengo-web.Dockerfile`, uncommitted. Deploying this should change no
+  version on the server.
+
