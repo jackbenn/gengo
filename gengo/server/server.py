@@ -78,6 +78,7 @@ async def run_game(game_name):
     if problem:
         logging.warning(f"{problem}; dropping game {game_name}")
         del games[game_name]
+        await websocket1.send(json.dumps({'error': f"Can't start the game: {problem}."}))
         await websocket1.close(1008, problem)
         return
     overlap_lists = tuple(list(region) for region in OVERLAPS[overlap])
@@ -175,6 +176,21 @@ async def run_game(game_name):
             return
 
 
+async def send_error(websocket, message):
+    """Tell a client why its request failed, and close the connection.
+    The pages show the message; see on_message in board.py."""
+    logging.warning(message)
+    await websocket.send(json.dumps({'error': message}))
+    await websocket.close()
+
+
+async def keep_open():
+    """Keep a player's connection open while run_game uses it."""
+    while True:
+        logging.info("sleeping a little in connection")
+        await asyncio.sleep(60)
+
+
 async def get_connection(websocket):
     action = await websocket.recv()
     print(action)
@@ -189,36 +205,38 @@ async def get_connection(websocket):
         logging.info(game_names)
         print("games: ", game_names)
         await websocket.send(game_names)
-
-    if action == "new game":
+    elif action == "new game":
         game_name = await websocket.recv()
-        if game_name not in games:
-            # can shorted in python 3.7
-            task = asyncio.create_task(run_game(game_name))
-            # we should probably save the tasks somewhere??
-            games[game_name] = {}
-            games[game_name]['connections'] = asyncio.Queue()
-            games[game_name]['status'] = 'created'
+        if game_name in games and games[game_name]['status'] != 'done':
+            await send_error(websocket,
+                             f"There is already a game called {game_name!r}. "
+                             "Choose another name.")
+            return
+        task = asyncio.create_task(run_game(game_name))
+        games[game_name] = {}
+        games[game_name]['connections'] = asyncio.Queue()
+        games[game_name]['status'] = 'created'
 
-            await games[game_name]['connections'].put(websocket)
-            await task
-        else:
-            # give some sort of error
-            pass
-        while True:
-            logging.info("sleeping a little in connection")
-            await asyncio.sleep(60)
+        await games[game_name]['connections'].put(websocket)
+        await task
+        await keep_open()
     elif action == "join game":
         game_name = await websocket.recv()
         if game_name not in games:
-            # give some sort of error
-            pass
-        else:
-            await games[game_name]['connections'].put(websocket)
-        while True:
-            logging.info("sleeping a little in connection")
-            await asyncio.sleep(60)
-
+            await send_error(websocket,
+                             f"There is no game called {game_name!r}.")
+            return
+        if games[game_name]['status'] != 'created':
+            await send_error(websocket,
+                             f"The game {game_name!r} already has two players.")
+            return
+        # Claim the second seat now, so no one else can join while run_game
+        # picks this connection up.
+        games[game_name]['status'] = 'joined'
+        await games[game_name]['connections'].put(websocket)
+        await keep_open()
+    else:
+        await send_error(websocket, f"Unknown request {action!r}.")
 
 async def _run_server(args):
     async with websockets.serve(get_connection, None, args.port):

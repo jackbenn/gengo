@@ -11,6 +11,9 @@ against the same contract:
 - "join game", then the game name.
 - During play, the player to move is sent a board with is_my_turn true, and
   answers with "x,y", "pass" or "undo". Both players are then sent the result.
+- A request the server cannot serve (an unknown or full game, a name in use,
+  bad settings, an unknown action) gets {"error": message}, then the server
+  closes the connection.
 """
 import contextlib
 import json
@@ -266,43 +269,72 @@ def test_handicap_gives_black_extra_moves(ws_url, open_ws):
 
 
 # --- bad requests ----------------------------------------------------------
+# A request the server cannot serve gets {"error": message}, and then the
+# connection is closed.
+
+def assert_error(ws, contains=""):
+    msg = recv_json(ws)
+    assert set(msg) == {'error'}
+    assert contains in msg['error']
+    with pytest.raises(ConnectionClosed):
+        ws.recv(timeout=TIMEOUT)
+
 
 @pytest.mark.parametrize("bad", [{'overlap': 'hexagonal'},
                                  {'board_size': 52},
                                  {'board_size': 0}])
-def test_bad_settings_close_the_connection_and_list_nothing(ws_url, open_ws, bad):
+def test_bad_settings_get_an_error_and_list_nothing(ws_url, open_ws, bad):
     ws = open_ws()
     ws.send("new game")
     ws.send("bad")
     ws.send(json.dumps(settings(**bad)))
+    assert 'error' in recv_json(ws)
     with pytest.raises(ConnectionClosed) as excinfo:
         ws.recv(timeout=TIMEOUT)
     assert excinfo.value.rcvd.code == 1008
     assert list_games(ws_url) == []
 
 
-@pytest.mark.xfail(strict=True, raises=TimeoutError,
-                   reason="GENGO-8: the server has no error reply")
 def test_join_unknown_game_gets_an_error(ws_url, open_ws):
-    ws = join_game(open_ws, "no-such-game")
-    assert 'error' in recv_json(ws, timeout=1)
+    assert_error(join_game(open_ws, "no-such-game"), "no game called")
 
 
-@pytest.mark.xfail(strict=True, raises=TimeoutError,
-                   reason="GENGO-8: the server has no error reply")
 def test_new_game_with_a_taken_name_gets_an_error(ws_url, open_ws):
     create_game(open_ws, ws_url, "taken")
     ws = open_ws()
     ws.send("new game")
     ws.send("taken")
     ws.send(json.dumps(settings()))
-    assert 'error' in recv_json(ws, timeout=1)
+    assert_error(ws, "already a game called")
+    # the first game is untouched
+    assert list_games(ws_url) == [{'game_name': 'taken', 'board_size': 5}]
 
 
-@pytest.mark.xfail(strict=True, raises=TimeoutError,
-                   reason="GENGO-8: the server has no error reply")
 def test_join_started_game_gets_an_error(ws_url, open_ws):
     black, white = start_game(open_ws, ws_url, "full")
     recv_json(black)
-    third = join_game(open_ws, "full")
-    assert 'error' in recv_json(third, timeout=1)
+    assert_error(join_game(open_ws, "full"), "already has two players")
+
+
+def test_second_joiner_is_refused_even_before_the_game_starts(ws_url, open_ws):
+    """The seat is claimed on join, not when run_game gets round to it."""
+    create_game(open_ws, ws_url, "race")
+    first = join_game(open_ws, "race")
+    second = join_game(open_ws, "race")
+    assert_error(second, "already has two players")
+    assert list_games(ws_url) == []
+
+
+def test_name_of_a_finished_game_can_be_used_again(ws_url, open_ws):
+    black, white = start_game(open_ws, ws_url, "again")
+    play(black, white, "pass")
+    play(white, black, "pass")
+    play(black, white, "pass")
+    create_game(open_ws, ws_url, "again", board_size=7)
+    assert list_games(ws_url) == [{'game_name': 'again', 'board_size': 7}]
+
+
+def test_unknown_request_gets_an_error(ws_url, open_ws):
+    ws = open_ws()
+    ws.send("make tea")
+    assert_error(ws, "Unknown request")

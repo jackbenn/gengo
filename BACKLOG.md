@@ -284,7 +284,7 @@ local port works.
 
 ## [GENGO-8] Bad "new game" and "join game" requests hang instead of getting an error
 
-- **Status:** idea
+- **Status:** done
 - **Priority:** unknown
 - **Size:** session
 - **Depends on:** none
@@ -306,5 +306,18 @@ and `board.py` (show the error, link back to `/gengo/`), so it fits with
 GENGO-1 or with GENGO-2, whose abandoned-game case is the same hang.
 
 ### Acceptance criteria
-- [ ] Each of the three cases gets an error reply, and the page shows it
-- [ ] The three `xfail` tests pass with the marks removed
+- [x] Each of the three cases gets an error reply, and the page shows it
+- [x] The three `xfail` tests pass with the marks removed
+
+### Notes
+- 2026-11-01: Done. The server answers `{"error": message}` and closes the
+  connection for all three cases, plus bad settings (still close code 1008)
+  and an unknown action. `board.py` shows the message in the status with a
+  link back to `/gengo/`, and the close that follows does not replace it.
+  Two further fixes in the same code: a joiner claims the second seat at once
+  (status `joined`), so a second joiner is refused even before `run_game`
+  picks the first up; and the name of a finished game can be used again,
+  since games are never removed (GENGO-2). The `xfail` marks are gone; new
+  server tests cover the race, name reuse and unknown actions, and two
+  browser tests cover the page.
+

@@ -183,3 +183,32 @@ def test_game_page_shows_when_the_connection_drops(site, browser,
     game_server_process.stop()
     player.status().to_contain_text("Lost the connection", timeout=TIMEOUT)
     expect(player.page.locator("#status")).to_have_class("error")
+
+
+def test_joining_a_missing_game_shows_the_error(site, browser):
+    player = Player(browser)
+    player.page.goto(
+        f"{site}/gengo/game?game_name=nobody&board_size=5&action=join")
+    player.status().to_contain_text("There is no game called 'nobody'",
+                                    timeout=LOAD_TIMEOUT)
+    # the close that follows must not replace it
+    player.page.wait_for_timeout(500)
+    player.status().to_contain_text("There is no game called 'nobody'")
+    expect(player.page.locator("#status")).to_have_class("error")
+    expect(player.page.locator("#pass")).to_be_disabled()
+    player.page.get_by_role("link", name="Back to the game list").click()
+    expect(player.page).to_have_url(f"{site}/gengo/")
+    assert player.errors == []
+
+
+def test_taken_name_shows_the_error(site, browser):
+    first, second = Player(browser), Player(browser)
+    url = (f"{site}/gengo/game?game_name=dup&board_size=5&action=new"
+           "&overlap=go&handicap=")
+    first.page.goto(url)
+    first.status().to_have_text("Waiting for opponent to join",
+                                timeout=LOAD_TIMEOUT)
+    second.page.goto(url)
+    second.status().to_contain_text("already a game called 'dup'",
+                                    timeout=LOAD_TIMEOUT)
+    first.status().to_have_text("Waiting for opponent to join")

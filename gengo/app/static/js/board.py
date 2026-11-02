@@ -1,6 +1,7 @@
 from browser import document, alert, svg
 from browser import websocket
 from browser import window
+from browser.html import A, BR
 
 import json
 import logging
@@ -8,7 +9,7 @@ game_name = None
 board_size = None
 is_my_turn = None
 show_scores = False
-game_over = False
+game_over = False    # the game ended, or the server refused it
 
 # for testing
 # logging.basicConfig(level=logging.DEBUG)
@@ -27,12 +28,29 @@ def set_button_enabled(btn_id, enabled):
         btn.attrs['disabled'] = ''
 
 
+def show_error(message):
+    """Replace the status with message and a link back to the game list,
+    and stop play."""
+    global is_my_turn
+    is_my_turn = False
+    status = document['status']
+    status.text = message
+    status <= BR()
+    status <= A("Back to the game list", href="/gengo/")
+    status.classList.add('error')
+    set_button_enabled('pass', False)
+    set_button_enabled('undo', False)
+
+
 def on_message(evt):
-    # board = ast.literal_eval(evt.data)
-    # need to fix, but ast not loaded; should parse manually
     global is_my_turn, show_scores, game_over
     data = json.loads(evt.data)
     logging.info(f"Got message with data {data}")
+    if 'error' in data:
+        # the server refused the request and is closing the connection
+        game_over = True
+        show_error(data['error'])
+        return
     board = data['board']
     stones = data['stones']
     pairs = data['pairs']
@@ -99,11 +117,8 @@ def on_click(ev):
 
 def on_close(evt):
     if not game_over:
-        document['status'].text = ("Lost the connection to the game server. "
-                                   "Reload the page to try again.")
-        document['status'].classList.add('error')
-        set_button_enabled('pass', False)
-        set_button_enabled('undo', False)
+        show_error("Lost the connection to the game server. "
+                   "Reload the page to try again.")
 
 
 def on_open(evt):
