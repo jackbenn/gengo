@@ -373,4 +373,6 @@ deliberate, simple step, and say how in the README. gunicorn is installed by
   8d33bd6). Only `gengo-web` and `gengo-ws` were recreated, and `pip freeze`
   in each is unchanged from before. `update_requirements.sh` is still
   untried; run it the next time Docker is up locally.
+- 2026-11-02: Ran `update_requirements.sh`. It works, and resolved exactly
+  the pinned versions (only the header comment changed, which was discarded).
 
