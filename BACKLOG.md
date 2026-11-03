@@ -4,11 +4,12 @@ Prefix: GENGO · Next ID: 10 · Schema: v1
 
 ## [GENGO-2] Games whose creator has left stay listed and hang anyone who joins
 
-- **Status:** active
+- **Status:** done
 - **Priority:** P2
 - **Size:** session
 - **Depends on:** none
 - **Tags:** server, bug
+- **Commits:** d5d6fa7
 
 The game server (`gengo/server/server.py`) keeps games in the module-level
 `games` dict and never removes one. A game is listed by "list games" while its
@@ -40,6 +41,11 @@ waiting. `get_connection` currently keeps each connection alive with an
   noticed at once; a connection that just dies (laptop lid, lost network)
   only when websockets' keepalive ping times out, 20 s + 20 s by default.
   Tests: five protocol tests and two browser tests.
+- 2026-11-03: Deployed (pointer 93774fa). Only `gengo-web` and `gengo-ws`
+  were recreated. Checked live over `wss://bennetto.com/gengo/ws`: a waiting
+  game left the list within a second of its creator closing, joining it then
+  got "There is no game called …", and closing one player mid-game sent the
+  other "Your opponent left, so the game is over."
 
 ## [GENGO-3] Keep games across a game-server restart
 
