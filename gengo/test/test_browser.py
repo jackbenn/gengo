@@ -212,3 +212,39 @@ def test_taken_name_shows_the_error(site, browser):
     second.status().to_contain_text("already a game called 'dup'",
                                     timeout=LOAD_TIMEOUT)
     first.status().to_have_text("Waiting for opponent to join")
+
+
+def test_closing_the_tab_of_a_waiting_game_unlists_it(site, browser):
+    creator, other = Player(browser), Player(browser)
+    creator.page.goto(
+        f"{site}/gengo/game?game_name=gone&board_size=5&action=new"
+        "&overlap=go&handicap=")
+    creator.status().to_have_text("Waiting for opponent to join",
+                                  timeout=LOAD_TIMEOUT)
+    other.page.goto(f"{site}/gengo/")
+    expect(other.page.get_by_role("link", name="gone")).to_be_visible(
+        timeout=LOAD_TIMEOUT)
+
+    creator.page.close()
+    other.page.wait_for_timeout(500)
+    other.page.reload()
+    expect(other.page.locator("#games")).to_have_text(
+        "(no active games)", timeout=LOAD_TIMEOUT)
+
+
+def test_opponent_closing_their_tab_is_shown(site, browser):
+    black, white = Player(browser), Player(browser)
+    black.page.goto(
+        f"{site}/gengo/game?game_name=bye&board_size=5&action=new"
+        "&overlap=go&handicap=&play_black=on")
+    black.status().to_have_text("Waiting for opponent to join",
+                                timeout=LOAD_TIMEOUT)
+    white.page.goto(f"{site}/gengo/game?game_name=bye&board_size=5&action=join")
+    black.status().to_have_text("Click on the board to move",
+                                timeout=LOAD_TIMEOUT)
+
+    white.page.close()
+    black.status().to_contain_text("opponent left", timeout=TIMEOUT)
+    expect(black.page.locator("#status")).to_have_class("error")
+    expect(black.page.locator("#pass")).to_be_disabled()
+    assert black.errors == []

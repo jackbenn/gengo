@@ -3,8 +3,12 @@ import asyncio
 import websockets
 import json
 import ast
+import contextlib
 import logging
 from typing import Dict
+
+from websockets.exceptions import ConnectionClosed
+from websockets.protocol import State
 
 from ..src.gengo import Board, GridBoard, Rules, Player, Game, InvalidMove
 
@@ -57,11 +61,54 @@ def get_game_data(board) -> Dict:
     return game_data
 
 
-async def run_game(game_name):
-    logging.info("Waiting for first connection")
-    websocket1 = await games[game_name]['connections'].get()
+class PlayerLeft(Exception):
+    """A player's connection closed while the game was waiting on the other."""
 
-    settings = json.loads(await websocket1.recv())
+
+async def next_message(websocket, other):
+    """The next message from websocket. Raises ConnectionClosed if websocket
+    closes first, or PlayerLeft if other does."""
+    message = asyncio.ensure_future(websocket.recv())
+    other_left = asyncio.ensure_future(other.wait_closed())
+    try:
+        await asyncio.wait({message, other_left},
+                           return_when=asyncio.FIRST_COMPLETED)
+    finally:
+        for task in (message, other_left):
+            task.cancel()   # no-op on the one that finished
+    if message.done() and not message.cancelled():
+        return message.result()
+    raise PlayerLeft()
+
+
+async def run_game(game_name):
+    """Run one game from its settings to the end, then forget it.
+
+    The game is dropped from `games` however it ends: finished, abandoned by
+    its creator before anyone joined, or by a player mid-game. Anyone left
+    waiting in its queue is told it has gone."""
+    entry = games[game_name]
+    try:
+        await play_game(game_name, entry)
+    finally:
+        if games.get(game_name) is entry:
+            del games[game_name]
+        queue = entry['connections']
+        while not queue.empty():
+            with contextlib.suppress(ConnectionClosed):
+                await send_error(queue.get_nowait(),
+                                 f"The player who created {game_name!r} has left.")
+
+
+async def play_game(game_name, entry):
+    logging.info("Waiting for first connection")
+    websocket1 = await entry['connections'].get()
+
+    try:
+        settings = json.loads(await websocket1.recv())
+    except ConnectionClosed:
+        logging.info(f"creator of {game_name} left before sending settings")
+        return
     board_size = int(settings['board_size'])
     allow_suicide = settings['allow_suicide'] == "True"
     play_in_own_overlap = settings['play_in_own_overlap'] == "True"
@@ -77,7 +124,6 @@ async def run_game(game_name):
         problem = f"board_size must be from 1 to {MAX_BOARD_SIZE}"
     if problem:
         logging.warning(f"{problem}; dropping game {game_name}")
-        del games[game_name]
         await websocket1.send(json.dumps({'error': f"Can't start the game: {problem}."}))
         await websocket1.close(1008, problem)
         return
@@ -88,13 +134,29 @@ async def run_game(game_name):
     logging.info(f"play_in_own_overlap {play_in_own_overlap}")
     logging.info(f"play_black {play_black}")
     logging.info(f"handicap {handicap}")
-    games[game_name]['board_size'] = board_size
-    games[game_name]['overlap'] = overlap
+    entry['board_size'] = board_size
+    entry['overlap'] = overlap
 
+    # Wait for a second player, unless the creator leaves first.
     logging.info("Waiting for second connection")
-    websocket2 = await games[game_name]['connections'].get()
+    joiner = asyncio.ensure_future(entry['connections'].get())
+    creator_left = asyncio.ensure_future(websocket1.wait_closed())
+    try:
+        await asyncio.wait({joiner, creator_left},
+                           return_when=asyncio.FIRST_COMPLETED)
+    finally:
+        creator_left.cancel()
+        if joiner.done() and not joiner.cancelled() and \
+                websocket1.state is not State.OPEN:
+            # a joiner arrived just as the creator left; run_game tells them
+            entry['connections'].put_nowait(joiner.result())
+        joiner.cancel()
+    if websocket1.state is not State.OPEN:
+        logging.info(f"creator of {game_name} left before anyone joined")
+        return
+    websocket2 = joiner.result()
     logging.info("Got both connections")
-    games[game_name]['status'] = "started"
+    entry['status'] = "started"
 
     rules = Rules(*overlap_lists,
                   size=board_size,
@@ -112,68 +174,75 @@ async def run_game(game_name):
     else:
         websockets = [websocket2, websocket1]
 
-    while True:
-        warning = None
-        this_player = game.next_player
-        websocket = websockets[this_player]
+    try:
+        while True:
+            warning = None
+            this_player = game.next_player
+            websocket = websockets[this_player]
 
-        # first, send the current board,
-        # plus that it's your turn
-        game_data = get_game_data(game.board)
-        game_data['is_my_turn'] = True
-        game_data['show_scores'] = show_scores
-        response = json.dumps(game_data)
-        logging.info(f">json ({response})")
-        await websocket.send(response)
+            # first, send the current board,
+            # plus that it's your turn
+            game_data = get_game_data(game.board)
+            game_data['is_my_turn'] = True
+            game_data['show_scores'] = show_scores
+            response = json.dumps(game_data)
+            logging.info(f">json ({response})")
+            await websocket.send(response)
 
-        # second, wait for a move
-        move = await websocket.recv()
-        logging.info(f"< ({move})")
-        if move == "pass":
-            move = None
-            game.move(move)
-        elif move == "undo":
-            game = game.create_replay()
-        else:
-            try:
-                move = parse_move(move, board_size)
-            except InvalidMove as e:
-                # nothing was played, so there is nothing to take back
-                logging.warning(e)
-                warning = e.message
+            # second, wait for a move
+            move = await next_message(websocket,
+                                      websockets[1 - this_player])
+            logging.info(f"< ({move})")
+            if move == "pass":
+                move = None
+                game.move(move)
+            elif move == "undo":
+                game = game.create_replay()
             else:
                 try:
-                    game.move(move)
+                    move = parse_move(move, board_size)
                 except InvalidMove as e:
-                    # the move was recorded and partly played; replay
-                    # the game without it
+                    # nothing was played, so there is nothing to take back
                     logging.warning(e)
                     warning = e.message
-                    game = game.create_replay()
-        logging.info(game)
+                else:
+                    try:
+                        game.move(move)
+                    except InvalidMove as e:
+                        # the move was recorded and partly played; replay
+                        # the game without it
+                        logging.warning(e)
+                        warning = e.message
+                        game = game.create_replay()
+            logging.info(game)
 
-        # third, send the results of the move to both players
-        game_data = get_game_data(game.board)
-        game_data['show_scores'] = show_scores
-        if game.is_done:
-            logging.info("Game is done")
-            game_data['done'] = True
-            games[game_name]['status'] = 'done'
-            if options['database']:
-                import psycopg2
-                conn = psycopg2.connect("dbname='gengo'")
-                game.save(conn)
+            # third, send the results of the move to both players
+            game_data = get_game_data(game.board)
+            game_data['show_scores'] = show_scores
+            if game.is_done:
+                logging.info("Game is done")
+                game_data['done'] = True
+                if options['database']:
+                    import psycopg2
+                    conn = psycopg2.connect("dbname='gengo'")
+                    game.save(conn)
 
-        for i, ws in enumerate(websockets):
-            player_data = dict(game_data)
-            player_data['is_my_turn'] = (not game.is_done) and (i == game.next_player)
-            if i == this_player and warning is not None:
-                player_data['warning'] = warning
-            logging.info(f">json to player {i}")
-            await ws.send(json.dumps(player_data))
+            for i, ws in enumerate(websockets):
+                player_data = dict(game_data)
+                player_data['is_my_turn'] = (not game.is_done) and (i == game.next_player)
+                if i == this_player and warning is not None:
+                    player_data['warning'] = warning
+                logging.info(f">json to player {i}")
+                await ws.send(json.dumps(player_data))
 
-        if game.is_done:
-            return
+            if game.is_done:
+                return
+    except (ConnectionClosed, PlayerLeft):
+        logging.info(f"a player left {game_name}")
+        for ws in websockets:
+            if ws.state is State.OPEN:
+                with contextlib.suppress(ConnectionClosed):
+                    await send_error(ws, "Your opponent left, so the game is over.")
 
 
 async def send_error(websocket, message):
@@ -182,13 +251,6 @@ async def send_error(websocket, message):
     logging.warning(message)
     await websocket.send(json.dumps({'error': message}))
     await websocket.close()
-
-
-async def keep_open():
-    """Keep a player's connection open while run_game uses it."""
-    while True:
-        logging.info("sleeping a little in connection")
-        await asyncio.sleep(60)
 
 
 async def get_connection(websocket):
@@ -207,19 +269,17 @@ async def get_connection(websocket):
         await websocket.send(game_names)
     elif action == "new game":
         game_name = await websocket.recv()
-        if game_name in games and games[game_name]['status'] != 'done':
+        if game_name in games:
             await send_error(websocket,
                              f"There is already a game called {game_name!r}. "
                              "Choose another name.")
             return
-        task = asyncio.create_task(run_game(game_name))
-        games[game_name] = {}
-        games[game_name]['connections'] = asyncio.Queue()
-        games[game_name]['status'] = 'created'
-
+        games[game_name] = {'connections': asyncio.Queue(),
+                            'status': 'created'}
         await games[game_name]['connections'].put(websocket)
-        await task
-        await keep_open()
+        await run_game(game_name)
+        # Returning would close the connection; leave that to the client.
+        await websocket.wait_closed()
     elif action == "join game":
         game_name = await websocket.recv()
         if game_name not in games:
@@ -234,7 +294,8 @@ async def get_connection(websocket):
         # picks this connection up.
         games[game_name]['status'] = 'joined'
         await games[game_name]['connections'].put(websocket)
-        await keep_open()
+        # run_game uses the connection; keep it open until the client leaves.
+        await websocket.wait_closed()
     else:
         await send_error(websocket, f"Unknown request {action!r}.")
 

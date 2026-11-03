@@ -14,6 +14,9 @@ against the same contract:
 - A request the server cannot serve (an unknown or full game, a name in use,
   bad settings, an unknown action) gets {"error": message}, then the server
   closes the connection.
+- A game is forgotten when it ends, when its creator leaves before anyone
+  joins, or when either player leaves mid-game; then the player still
+  connected gets {"error": "Your opponent left, ..."}.
 """
 import contextlib
 import json
@@ -22,6 +25,8 @@ import time
 import pytest
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
+
+from ..server import server as game_server
 
 TIMEOUT = 5
 
@@ -338,3 +343,56 @@ def test_unknown_request_gets_an_error(ws_url, open_ws):
     ws = open_ws()
     ws.send("make tea")
     assert_error(ws, "Unknown request")
+
+
+# --- players leaving -------------------------------------------------------
+# A game is forgotten however it ends, and whoever is still connected is told.
+
+def wait_until_no_games():
+    deadline = time.monotonic() + TIMEOUT
+    while game_server.games and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert game_server.games == {}
+
+
+def test_game_is_unlisted_when_its_creator_leaves(ws_url, open_ws):
+    creator = create_game(open_ws, ws_url, "abandoned")
+    creator.close()
+    assert wait_for_listing(ws_url, lambda games: games == []) == []
+    assert_error(join_game(open_ws, "abandoned"), "no game called")
+    wait_until_no_games()
+
+
+def test_creator_leaving_before_sending_settings_frees_the_name(ws_url, open_ws):
+    ws = open_ws()
+    ws.send("new game")
+    ws.send("half")
+    ws.close()
+    wait_until_no_games()
+    create_game(open_ws, ws_url, "half")
+    assert list_games(ws_url) == [{'game_name': 'half', 'board_size': 5}]
+
+
+def test_opponent_leaving_while_you_move_ends_the_game(ws_url, open_ws):
+    black, white = start_game(open_ws, ws_url)
+    play(black, white, "1,1")
+    assert recv_json(white)['is_my_turn'] is True
+    black.close()
+    assert_error(white, "opponent left")
+    wait_until_no_games()
+
+
+def test_opponent_leaving_on_their_turn_ends_the_game(ws_url, open_ws):
+    black, white = start_game(open_ws, ws_url)
+    assert recv_json(black)['is_my_turn'] is True
+    white.close()
+    assert_error(black, "opponent left")
+    wait_until_no_games()
+
+
+def test_finished_game_is_forgotten(ws_url, open_ws):
+    black, white = start_game(open_ws, ws_url)
+    play(black, white, "pass")
+    play(white, black, "pass")
+    play(black, white, "pass")
+    wait_until_no_games()

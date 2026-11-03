@@ -4,8 +4,8 @@ Prefix: GENGO · Next ID: 10 · Schema: v1
 
 ## [GENGO-2] Games whose creator has left stay listed and hang anyone who joins
 
-- **Status:** idea
-- **Priority:** unknown
+- **Status:** active
+- **Priority:** P2
 - **Size:** session
 - **Depends on:** none
 - **Tags:** server, bug
@@ -26,9 +26,20 @@ waiting. `get_connection` currently keeps each connection alive with an
 `asyncio.sleep(60)` loop and does not notice the close.
 
 ### Acceptance criteria
-- [ ] A game disappears from the list within a few seconds of its creator closing the tab
-- [ ] Joining a game whose creator has gone shows an error instead of hanging
-- [ ] If one player disconnects mid-game, the other is told
+- [x] A game disappears from the list within a few seconds of its creator closing the tab
+- [x] Joining a game whose creator has gone shows an error instead of hanging
+- [x] If one player disconnects mid-game, the other is told
+
+### Notes
+- 2026-11-02: `run_game` now waits for a joiner and for each move while
+  watching the other connection, and drops the game from `games` however it
+  ends (finished, creator gone, player gone mid-game); finished games used to
+  stay in the dict for ever. The player still connected gets "Your opponent
+  left, so the game is over." through the existing error display (GENGO-8).
+  `keep_open`'s sleep loop is replaced by `wait_closed()`. A closed tab is
+  noticed at once; a connection that just dies (laptop lid, lost network)
+  only when websockets' keepalive ping times out, 20 s + 20 s by default.
+  Tests: five protocol tests and two browser tests.
 
 ## [GENGO-3] Keep games across a game-server restart
 
